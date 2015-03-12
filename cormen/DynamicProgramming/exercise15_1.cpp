@@ -1,3 +1,9 @@
+/*************************************************
+ * Problem statement
+ * Longest simple path in a directed acyclic graph
+ * Suppose that we are given a directed acyclic graph G = (V,E) with real- valued edge weights and two distinguished vertices s and t.        
+ * Describe a dynamic- programming approach for finding a longest weighted simple path from s to t.
+ */
 #include <cmath>
 #include <climits>
 #include <queue>
