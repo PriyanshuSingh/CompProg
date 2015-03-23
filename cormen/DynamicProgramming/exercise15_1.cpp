@@ -1,3 +1,9 @@
+/*************************************************
+ * Problem statement
+ * Longest simple path in a directed acyclic graph
+ * Suppose that we are given a directed acyclic graph G = (V,E) with real- valued edge weights and two distinguished vertices s and t.        
+ * Describe a dynamic- programming approach for finding a longest weighted simple path from s to t.
+ */
 #include <cmath>
 #include <climits>
 #include <queue>
@@ -63,37 +69,76 @@ inline void fs(int &x)
     if(neg) x=-x;
 }
 
-int memo[100001][2]; //O(m) space rather than O(mn)
-char A[100001];
-char B[100001];
+typedef struct {
+    int n; // node
+    bool out; //is outdegree
+    int w; // weight, can be negative!
+} edge;
 
-/*************************************************************
- * O(mn) running time can also be optimised if we have maximum
- * limit on subsequence length we will see it in Edit distance
- */
-int solve(int lastA,int lastB){
-    int cur, prev;
-    fill(memo, 0);
-    cur = 1;
-    prev = 0;
-    forall(j, 1, lastB+1){
-        forall(i, 1, lastA+1){
-            if(A[i-1] == B[j-1])memo[i][cur] = memo[i-1][prev] + 1;
-            else if(A[i-1] != B[j-1])memo[i][cur] = maX(memo[i-1][cur], memo[i][prev]);
-            //printf("%d ",memo[i][cur]);
+// adj list
+vector<edge> gp[10000];
+
+int dist[10000];
+bool vis[10000];
+bool bad[10000];
+
+int solv(int des){
+    int temp,count=0;
+    if(vis[des]) return dist[des];
+    else{
+        foreach(v, gp[des]){
+            if(!v->out){
+                /*****************
+                 * same print statement at two places can help
+                 * to see recursion properly
+                 */ 
+                //printf("#(%d, %d)\n",v->n,des);  
+                temp = solv(v->n);
+                if(!bad[v->n]){
+                    //printf("(%d, %d)\n",v->n,des);
+                    count++;
+                    dist[des] = maX(dist[des], temp + v->w);
+                }
+            }
         }
-        //printf("\n");
-        cur = prev;
-        prev = (cur+1)%2;
+        if(count == 0)bad[des] = true;
+        vis[des] = true;
     }
-    return memo[lastA][prev];
+    return dist[des];
+}
+
+
+int solve(int des, int src, int n){
+    forall(i, 0, n){
+        dist[i] = -INF;
+        vis[i] = false;
+        bad[i] = false;
+    }
+    dist[src] = 0;
+    vis[src] = true;
+    return solv(des);
 }
 
 int main(){
-    ss(A);
-    ss(B);
-    int lenA = strlen(A);
-    int lenB = strlen(B);
-    printf("%d\n",solve(lenA,lenB));
+    int n,m,u,v,w;
+    fs(n);
+    //m edges
+    fs(m);
+    forall(i, 0, m){
+        fs(u);fs(v);fs(w);
+        gp[u].pb((edge){v,true,w});
+        gp[v].pb((edge){u,false,w});
+    }
+    fs(u);fs(v);
+
+    printf("%d\n",solve(v,u,n));
+    forall(i, 0, n){
+        printf("%d ",dist[i],bad[i]);
+    }
+    return 0;
 }
+
+
+
+
 

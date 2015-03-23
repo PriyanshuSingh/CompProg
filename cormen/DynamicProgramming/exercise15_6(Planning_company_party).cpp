@@ -1,3 +1,11 @@
+/*********************************************************
+ * Planning company party
+ * Professor Stewart is consulting for the president of a corporation that is planning a company party. The company has a hierarchical structure; 
+ * that is, the supervisor relation forms a tree rooted at the president. The personnel office has ranked each employee with a conviviality rating, 
+ * which is a real number. In order to make the party fun for all attendees, the president does not want both an employee and his or her immediate 
+ * supervisor to attend. Each node of the tree holds, in addition to the pointers, the name of an employee and that employee’s conviviality ranking. 
+ * Describe an algorithm to make up a guest list that maximizes the sum of the conviviality ratings of the guests.
+ */
 #include <cmath>
 #include <climits>
 #include <queue>
@@ -63,37 +71,75 @@ inline void fs(int &x)
     if(neg) x=-x;
 }
 
-int memo[100001][2]; //O(m) space rather than O(mn)
-char A[100001];
-char B[100001];
 
-/*************************************************************
- * O(mn) running time can also be optimised if we have maximum
- * limit on subsequence length we will see it in Edit distance
- */
-int solve(int lastA,int lastB){
-    int cur, prev;
-    fill(memo, 0);
-    cur = 1;
-    prev = 0;
-    forall(j, 1, lastB+1){
-        forall(i, 1, lastA+1){
-            if(A[i-1] == B[j-1])memo[i][cur] = memo[i-1][prev] + 1;
-            else if(A[i-1] != B[j-1])memo[i][cur] = maX(memo[i-1][cur], memo[i][prev]);
-            //printf("%d ",memo[i][cur]);
+
+vector<int> dag[10000];
+int memo[10000];
+int rate[10000];
+
+int sol(int root){
+    if(memo[root] != -INF)return memo[root];
+    else if(dag[root].size() == 0)return rate[root];
+    else {
+        int case1,case2 = 0;
+        case1 = rate[root];
+        foreach(v, dag[root]){
+            case2 += sol(*v);
+            foreach(gv, dag[*v]){
+                case1 += sol(*gv);
+            }
         }
-        //printf("\n");
-        cur = prev;
-        prev = (cur+1)%2;
+        memo[root] = maX(case1, case2);
     }
-    return memo[lastA][prev];
+    return memo[root];
+}
+
+
+
+int solve(int root, int edges){
+    forall(i, 0, edges){
+        memo[i] = -INF;
+    }
+    
+    return sol(root);
 }
 
 int main(){
-    ss(A);
-    ss(B);
-    int lenA = strlen(A);
-    int lenB = strlen(B);
-    printf("%d\n",solve(lenA,lenB));
+    int m,n,u,v;
+    fs(n);
+    forall(i, 0, n){
+        fs(rate[i]);
+    }
+    fs(m);
+    forall(i, 0, m){
+        fs(u);fs(v);
+        dag[u].pb(v);
+    }
+    fs(u); //root
+    printf("%d\n",solve(u,n));
+    return 0;    
 }
+/************
+ * Test case
+ * 15
+ * 5 5 3 4 11 4 5 8 8 5 6 1 5 7 6
+ * 14
+ * 0 1
+ * 0 2
+ * 1 3
+ * 1 4
+ * 2 5
+ * 2 6
+ * 3 7
+ * 3 8
+ * 4 9
+ * 4 10
+ * 5 11
+ * 5 12
+ * 6 13
+ * 6 14
+ * 0
+ * 
+ * output = 54
+ */
 

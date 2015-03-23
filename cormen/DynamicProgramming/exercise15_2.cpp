@@ -1,3 +1,10 @@
+/******************************************************
+ * Longest palindrome subsequence
+ * A palindrome is a nonempty string over some alphabet that reads the same forward and backward. 
+ * Examples of palindromes are all strings of length 1, civic, racecar, and aibohphobia (fear of palindromes).
+ * Give an efficient algorithm to find the longest palindrome that is a subsequence of a given input string. 
+ * For example, given the input character, your algorithm should return carac.
+ */
 #include <cmath>
 #include <climits>
 #include <queue>
@@ -52,36 +59,42 @@ using namespace std;
 #define us unsigned short
 #define gc  getchar_unlocked
 
-char *A = "qwertyuiopasdfghjkl;zxcvbnm,./";
-map<int,char> Ar;
-map<char,int> Br;
-void init(){
-    for(int i=0; A[i] != '\0'; i++){
-	Ar[A[i]] = i;
-	Br[i] = A[i];
-    }
+inline void fs(int &x)
+{
+    register int c = gc();
+    x = 0;
+    int neg = 0;
+    for(;((c<48 || c>57) && c != '-');c = gc());
+    if(c=='-') {neg=1;c=gc();}
+    for(;c>47 && c<58;c = gc()) {x = (x<<1) + (x<<3) + c - 48;}
+    if(neg) x=-x;
 }
-char B[110];
-int main(){
-    init();
-    gets(B);
-    //   printf("%s",B);
-    if(B[0] == 'L'){
-	gets(B);
-	//	printf("%s",B);
-	for(int i=0; B[i] != '\0'; i++){
 
-	    B[i] = Br[Ar[B[i]]+1];
-	    printf("%c <==\n",B[i]);
-	}
-	printf("%s",B);
+char str[1000];
+int memo[1000][1000];
+
+int solve(int i, int j){
+    if(i > j)return 0;
+    else if(i == j)return 1;
+    else if(memo[i][j] != -1)return memo[i][j];
+    else if(str[i] == str[j]){
+        memo[i][j] = solve(i+1, j-1) + 2;
     }
     else{
-	gets(B);
-	//	printf("%s",B);
-	for(int i=0; B[i] != '\0'; i++){
-	    B[i] = Br[Ar[B[i]]-1];
-	}
-	printf("%s\n",B);
+        memo[i][j] = maX(memo[i][j], solve(i+1,j));
+        memo[i][j] = maX(memo[i][j], solve(i,j-1));
     }
+    return memo[i][j];
 }
+
+int main(){
+    int len;
+    ss(str);
+    len = strlen(str);
+    fill(memo,-1);
+    printf("%d\n",solve(0,len-1));
+    return 0;        
+}
+
+
+

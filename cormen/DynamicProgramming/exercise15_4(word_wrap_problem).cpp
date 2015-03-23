@@ -1,3 +1,12 @@
+/************************************************************
+ * Word Wrap
+ * Consider the problem of neatly printing a paragraph with a monospaced font (all characters having the same width) on a printer. 
+ * The input text is a sequence of n words of lengths l1,l2..ln , measured in characters. 
+ * We want to print this para- graph neatly on a number of lines that hold a maximum of M characters each. Our criterion of “neatness” is as follows. 
+ * If a given line contains words i through j , where i 􏰔 j , and we leave exactly one space between words, 
+ * the number of extra space characters at the end of the line is M 􏰖- j + i 􏰖sum(li..lj), which must be nonnegative so that the words fit on the line.
+ * We wish to minimize the sum, over all lines except the last, of the cubes of the numbers of extra space characters at the ends of lines.
+ */
 #include <cmath>
 #include <climits>
 #include <queue>
@@ -63,37 +72,56 @@ inline void fs(int &x)
     if(neg) x=-x;
 }
 
-int memo[100001][2]; //O(m) space rather than O(mn)
-char A[100001];
-char B[100001];
 
-/*************************************************************
- * O(mn) running time can also be optimised if we have maximum
- * limit on subsequence length we will see it in Edit distance
- */
-int solve(int lastA,int lastB){
-    int cur, prev;
-    fill(memo, 0);
-    cur = 1;
-    prev = 0;
-    forall(j, 1, lastB+1){
-        forall(i, 1, lastA+1){
-            if(A[i-1] == B[j-1])memo[i][cur] = memo[i-1][prev] + 1;
-            else if(A[i-1] != B[j-1])memo[i][cur] = maX(memo[i-1][cur], memo[i][prev]);
-            //printf("%d ",memo[i][cur]);
+int memo[1000];
+int word[1000];
+int len[1000][1000];
+int line_len;
+
+int cost(int space){return space*space*space;}
+
+int sol(int i){
+    if(i < 0)return 0;
+    else if(memo[i] != -1)return memo[i];
+    else{
+        memo[i] = INF;
+        for(int k = i; line_len - len[k][i] - i + k >= 0; k--){
+            memo[i] = miN(memo[i], sol(k-1) + cost(line_len - len[k][i] - i + k));
         }
-        //printf("\n");
-        cur = prev;
-        prev = (cur+1)%2;
     }
-    return memo[lastA][prev];
+    return memo[i];
 }
+
+int solve(int n){
+    fill(memo,-1);
+    forall(i, 0, n){
+        len[i][i] = word[i];
+        forall(j, i+1, n){
+            len[i][j] = len[i][j-1] + word[j];
+        }
+    }
+    return sol(n-1);
+}
+
 
 int main(){
-    ss(A);
-    ss(B);
-    int lenA = strlen(A);
-    int lenB = strlen(B);
-    printf("%d\n",solve(lenA,lenB));
+    int n,m;
+    fs(n);
+    forall(i, 0, n){
+        fs(word[i]);
+    }
+    fs(line_len);
+    printf("%d\n",solve(n));
 }
+/*******
+ * Test case
+ * 10
+ * 3 3 4 2 5 6 3 2 3 4
+ * 6
+ *
+ * output = 143
+ */
+
+
+
 

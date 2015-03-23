@@ -1,3 +1,11 @@
+/******************************************************
+ * Bitonic euclidean travelling-salesman problem
+ * In the euclidean traveling-salesman problem, we are given a set of n points in the plane, and we wish to find the shortest closed 
+ * tour that connects all n points. Figure 15.11(a) shows the solution to a 7-point problem. 
+ * The general problem is NP-hard, and its solution is therefore believed to require more than polynomial time (see Chapter 34).
+ * J. L. Bentley has suggested that we simplify the problem by restricting our at- tention to bitonic tours, that is, tours that start at the leftmost
+ * point, go strictly rightward to the rightmost point, and then go strictly leftward back to the starting point.
+ */
 #include <cmath>
 #include <climits>
 #include <queue>
@@ -62,38 +70,69 @@ inline void fs(int &x)
     for(;c>47 && c<58;c = gc()) {x = (x<<1) + (x<<3) + c - 48;}
     if(neg) x=-x;
 }
+typedef pair<int, int> point;
+point parr[1000];
 
-int memo[100001][2]; //O(m) space rather than O(mn)
-char A[100001];
-char B[100001];
+bool cmp(point a, point b){
+    return a.first < b.first;
+}
 
-/*************************************************************
- * O(mn) running time can also be optimised if we have maximum
- * limit on subsequence length we will see it in Edit distance
- */
-int solve(int lastA,int lastB){
-    int cur, prev;
-    fill(memo, 0);
-    cur = 1;
-    prev = 0;
-    forall(j, 1, lastB+1){
-        forall(i, 1, lastA+1){
-            if(A[i-1] == B[j-1])memo[i][cur] = memo[i-1][prev] + 1;
-            else if(A[i-1] != B[j-1])memo[i][cur] = maX(memo[i-1][cur], memo[i][prev]);
-            //printf("%d ",memo[i][cur]);
+float cost(point a, point b){
+    return sqrt((a.first - b.first)*(a.first - b.first) + (a.second - b.second)*(a.second - b.second));    
+}
+
+float memo[1000];
+float path[1000][1000];
+
+float bitonic(int i){
+    if(i <= 0)return 0;
+    else if(i == 1)return cost(parr[0],parr[1]);
+    else if(memo[i] != INF)return memo[i];
+    else{
+        forall(k, 0, i-1){
+            memo[i] = miN(memo[i], cost(parr[i],parr[k]) + bitonic(k+1) + path[k+1][i-1]);
         }
-        //printf("\n");
-        cur = prev;
-        prev = (cur+1)%2;
     }
-    return memo[lastA][prev];
+    return memo[i];
+}
+
+float solve(int n){
+    forall(i, 0, n){
+        memo[i] = INF;
+    }
+    forall(i, 0, n){
+        path[i][i] = 0;
+        forall(j, i+1, n){
+            path[i][j] = path[i][j-1] + cost(parr[j],parr[j-1]);
+        }
+    }
+    return bitonic(n-1) + cost(parr[n-1],parr[n-2]);
 }
 
 int main(){
-    ss(A);
-    ss(B);
-    int lenA = strlen(A);
-    int lenB = strlen(B);
-    printf("%d\n",solve(lenA,lenB));
+    int n,x,y;
+    fs(n);
+    forall(i, 0, n){
+        fs(x);fs(y);
+        parr[i] = mp(x,y);
+    }
+    sort(parr, parr+n, cmp);
+    printf("%f\n",solve(n));
+    return 0;
 }
+
+/**********
+ * Test case
+ * 7
+ * 0 6
+ * 1 0
+ * 2 3
+ * 5 4
+ * 6 1
+ * 7 5
+ * 8 2
+ *
+ * output = 25.584026
+ */
+
 
