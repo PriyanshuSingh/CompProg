@@ -110,7 +110,7 @@ int depth[N],siz[N],e_node[N];     // depth of node, size of subtree at node
 int par[LN][N];                    // par[i][node] = 2^i th parent of node
 int base_arr[N],pt=0,pos[N];       // base array, base pointer, position in base array
 int c_no=-1,c_head[N],c_ind[N];    // chain no, chain head, chain index
-int st[6*N+10],qt[6*N+10];         // segment tree, query tree
+ll st[6*N+10],qt[6*N+10];         // segment tree, query tree
 
 
 void dfs(int cur, int pr, int _depth=0){
@@ -161,6 +161,7 @@ int LCA(int u, int v){
             v = par[i][v];
         }
     }
+//    trace1(par[0][u])
     return par[0][u];
 }
 
@@ -177,6 +178,7 @@ void make_st(int cur, int s, int e){
 }
 
 void query_st(int cur, int s, int e, int S, int E){
+    
     if(s >= E || e <= S){
         qt[cur] = 0;
         return;
@@ -189,14 +191,15 @@ void query_st(int cur, int s, int e, int S, int E){
     int m = (s+e)>>1;
     query_st(c1, s, m, S, E);
     query_st(c2, m, e, S, E);
-    qt[cur] += qt[c1] + qt[c2];
+    qt[cur] = qt[c1] + qt[c2];
+    
 }
 // v ancestor of u
-int query_HLD(int u, int v){
+ll query_HLD(int u, int v){
     //trace2(u, v)
     int uchain, vchain = c_ind[v];
     uchain = c_ind[u];
-    int ans = 0;
+    ll ans = 0;
     while(1){
         if(u == v)return ans;
         //trace4(u, uchain, v, vchain)
@@ -228,11 +231,8 @@ void update(int cur, int s, int e, int x, int val){
 */
 void query(int u, int v){
     int lca = LCA(u,v);
-    int ans = query_HLD(u, lca);
-    int temp = query_HLD(v, lca);
-
-    if(temp > ans)ans = temp;
-    printf("%d\n",ans);
+    ll ans = query_HLD(u, lca) + query_HLD(v, lca);
+    printf("%lld\n",ans);
 }
 /*
 void change(int i, int val){
@@ -244,8 +244,11 @@ int find_k(int s, int e, int k){
 
     int lca = LCA(s, e);
     int l = depth[s] - depth[lca] + 1;
-    //trace2(l, k)
-    if(l < k){ k = k - l + 1; swap(s,e);}
+    //trace6(l, k,depth[s],depth[e],depth[lca],k)
+    if(l < k){
+        k = depth[s] + depth[e] - 2*depth[lca] - k + 2;
+        swap(s,e);
+    }
     k = k-1;
     //trace1(k)
     if(k == 0) return s;
@@ -254,6 +257,7 @@ int find_k(int s, int e, int k){
     }
     return s;
 }
+
 int main(){
     int t, n,u,v,c;
     fs(t);
@@ -272,7 +276,7 @@ int main(){
         }
         dfs(1,-1);
         c_no = 0;
-        HLD(1, -1);
+        HLD(1, 0);
         make_st(1, 0, pt);
         forall(i, 1, LN){
             forall(j, 0, n+1)if(par[i-1][j] != -1)par[i][j] = par[i-1][par[i-1][j]];           
@@ -291,6 +295,7 @@ int main(){
                 break;
             }
         }
+        printf("\n");
     }
     return 0;
 }
