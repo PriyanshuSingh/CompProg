@@ -102,199 +102,151 @@ inline void fs(int &x)
     if(neg) x=-x;
 }
 
-
-const int N = 10010;
-const int LN = 14;
-vpiii g[N];                         // graph[i] = <node, cost, edge no.>
+const int N = 100100;
+vi g[N];                           // graph[i] = <node, cost, edge no.>
 int depth[N],siz[N],e_node[N];     // depth of node, size of subtree at node
-int par[LN][N];                    // par[i][node] = 2^i th parent of node
-int pt=0,pos[N];       // base array, base pointer, position in base array
-int c_no=-1,c_head[N],c_ind[N];    // chain no, chain head, chain index
-ll st[6*N+10],qt[6*N+10];         // segment tree, query tree
-
+int par[N];                        // par[i][node] = 2^i th parent of node
+int pt=0,pos[N],pos_id[N];         // base array, base pointer, position in base array
+int c_no=0,c_head[N],c_ind[N];     // chain no, chain head, chain index
+int st[6*N+10],qt[6*N+10];         // segment tree, query tree
 
 void dfs(int cur, int pr, int _depth=0){
     depth[cur] = _depth;
     siz[cur] = 1;
-    par[0][cur] = pr;
+    par[cur] = pr;
     foreach(v, g[cur]){
-        if(v->F.F != pr){
-            e_node[v->S] = v->F.F;
-            dfs(v->F.F,cur,_depth+1);
-            siz[cur] += siz[v->F.F];
+        if(*v != pr){
+            dfs(*v, cur, _depth+1);
+            siz[cur] += siz[*v];
         }
     }
 }
 
-void HLD(int cur, int cost){
-    if(c_head[c_no] == -1)c_head[c_no] = cur;
+void HLD(int cur){
+    if(c_head[c_no] == -1){
+        c_head[c_no] = cur;
+    }
     c_ind[cur] = c_no;
-    pos[cur] = pt;
-    base_arr[pt++] = cost;
-    int mx=-1,mxv=-1,mxc;
+    pos[cur] = pt++;
+    pos_id[pt-1] = cur;
+    int mxv = -1;
+    int mx = -1;
     foreach(v, g[cur]){
-        if(v->F.F != par[0][cur]){
-            if(mx < siz[v->F.F]){
-                mx = siz[v->F.F];
-                mxv = v->F.F;
-                mxc = v->F.S;
-            }
-        }       
+        if(*v != par[cur] && siz[*v] > mx){
+            mx = siz[*v];
+            mxv = *v;
+        }
     }
-    if(mxv != -1)HLD(mxv, mxc);       
+    if(mxv != -1){
+        HLD(mxv);
+    }
     foreach(v, g[cur]){
-        if(v->F.F != par[0][cur] && v->F.F != mxv){
+        if(*v != par[cur] && *v != mxv){
             c_no++;
-            HLD(v->F.F, v->F.S);
+            HLD(*v);
         }
     }
 }
 
-int LCA(int u, int v){
-    if(depth[u] < depth[v]) swap(u, v);
-    int diff = depth[u] - depth[v];
-    forall(i, 0, LN)if((diff>>i)&1)u = par[i][u];
-    if(u == v) return u;
-    for(int i=LN-1; i >= 0; i--){
-        if(par[i][u] != par[i][v]){
-            u = par[i][u];
-            v = par[i][v];
+void update(int cur, int s, int e, int x){
+    if(s == x && e == x){
+        if(st[cur] == INT_MAX){
+            st[cur] = s;
+        }else{
+            st[cur] = INT_MAX;
         }
-    }
-    return par[0][u];
-}
-
-void make_st(int cur, int s, int e){
-    if(s == e-1){
-        st[cur] = base_arr[s];
+    }else if(s > x || e < x){
         return;
+    }else{
+        int m = (s+e)>>1;
+        int c1 = cur<<1;
+        int c2 = c1 | 1;
+        update(c1, s, m, x);
+        update(c2, m+1, e, x);
+        st[cur] = (st[c1] < st[c2])? st[c1] : st[c2];
     }
-    int m = (s+e)>>1;
-    int c1 = cur<<1, c2 = c1|1;
-    make_st(c1, s, m);
-    make_st(c2, m, e);
-    st[cur] = st[c1] + st[c2]; 
 }
 
 void query_st(int cur, int s, int e, int S, int E){
-    
-    if(s >= E || e <= S){
-        qt[cur] = 0;
+    //trace4(s, e, S, E)
+    if(s > E || e < S){
+        qt[cur] = INT_MAX;
+        //trace1("yes")
         return;
     }
-    if(S<=s && E>=e){
+    else if(S <= s && e <= E){
         qt[cur] = st[cur];
-        return;
     }
-    int c1 = cur<<1, c2 = c1|1;
-    int m = (s+e)>>1;
-    query_st(c1, s, m, S, E);
-    query_st(c2, m, e, S, E);
-    qt[cur] = qt[c1] + qt[c2];
-    
-}
-// v ancestor of u
-ll query_HLD(int u, int v){
-    //trace2(u, v)
-    int uchain, vchain = c_ind[v];
-    uchain = c_ind[u];
-    ll ans = 0;
-    while(1){
-        if(u == v)return ans;
-        //trace4(u, uchain, v, vchain)
-        if(uchain == vchain){
-            query_st(1, 0, pt, pos[v] + 1, pos[u] + 1);
-            ans += qt[1]; 
-            return ans;       
-        }
-        query_st(1, 0, pt, pos[c_head[uchain]], pos[u] + 1);
-        ans += qt[1];
-        u = c_head[uchain];
-        u = par[0][u];
-        uchain = c_ind[u];
+    else{
+        int m = (s+e)>>1;
+        int c1 = cur<<1;
+        int c2 = c1 | 1;
+        query_st(c1, s, m, S, E);
+        query_st(c2, m+1, e, S, E);
+        qt[cur] = (qt[c1] < qt[c2])? qt[c1] : qt[c2];
     }
 }
-/*
-void update(int cur, int s, int e, int x, int val){
-    if(x < s || x >= e)return;
-    if(s == x && s == e-1){
-        st[cur] = val;
-        return;
-    }
-    int m = (s+e)>>1;
-    int c1 = cur<<1, c2 = c1|1;
-    update(c1, s, m, x, val);
-    update(c2, m, e, x, val);
-    st[cur] = (st[c1] > st[c2]) ? st[c1] : st[c2];
-}
-*/
-void query(int u, int v){
-    int lca = LCA(u,v);
-    ll ans = query_HLD(u, lca) + query_HLD(v, lca);
-    printf("%lld\n",ans);
-}
-/*
-void change(int i, int val){
-    int u = e_node[i];
-    update(1, 0, pt, pos[u], val);
-}
-*/
-int find_k(int s, int e, int k){
 
-    int lca = LCA(s, e);
-    int l = depth[s] - depth[lca] + 1;
-    //trace6(l, k,depth[s],depth[e],depth[lca],k)
-    if(l < k){
-        k = depth[s] + depth[e] - 2*depth[lca] - k + 2;
-        swap(s,e);
-    }
-    k = k-1;
-    //trace1(k)
-    if(k == 0) return s;
-    forall(i, 0, LN){
-        if((k>>i)&1)s = par[i][s];
-    }
-    return s;
+int query_HLD(int v){
+    //trace1(v)
+    int uchain = 0,vchain;
+    int u = 1;
+    int ans = INT_MAX;
+    vchain = c_ind[v];
+    while(1){
+        //trace1(v);
+        //trace2(u, v)
+        if(u == v)return ans;
+        else if(uchain == vchain){
+            query_st(1, 0, pt-1, pos[u], pos[v]);
+            if(qt[1] != INT_MAX){
+                ans = qt[1];
+            }
+            return ans;
+        }else{
+            query_st(1, 0, pt-1, pos[c_head[vchain]], pos[v]);
+            if(qt[1] != INT_MAX){
+                ans = qt[1];
+            }
+            //trace2(par[c_head[vchain]], c_head[vchain])
+            v = par[c_head[vchain]];
+            vchain = c_ind[v];
+        }
+    }    
 }
 
 int main(){
-    int t, n,u,v,c;
-    fs(t);
-    while(t--){
-        fs(n);
-        pt = 0;
-        forall(i, 0, n+1){
-            g[i].clear();
-            c_head[i] = -1;
-            forall(j, 0, LN)par[j][i] = -1;
-        }
-        forall(i, 1, n){
-            fs(u);fs(v);fs(c);
-            g[u].pb(mp(mp(v,c),i));
-            g[v].pb(mp(mp(u,c),i));
-        }
-        dfs(1,-1);
-        c_no = 0;
-        HLD(1, 0);
-        make_st(1, 0, pt);
-        forall(i, 1, LN){
-            forall(j, 0, n+1)if(par[i-1][j] != -1)par[i][j] = par[i-1][par[i-1][j]];           
-        }
-        while (1) {
-            char str[50];
-            int u,v;
-            ss(str);
-            if(str[1] == 'I'){
-                fs(u);fs(v);
-                query(u, v);
-            }else if(str[0] == 'K'){
-                fs(u);fs(v);fs(c);
-                printf("%d\n",find_k(u, v, c));
-            }else {
-                break;
+    int n, q, u, v,ans;
+    bool isone = false;
+    fs(n);fs(q);
+    forall(i, 0, 6*N + 10){
+        st[i] = INT_MAX;
+    }
+    forall(i, 1, n){
+        fs(u);fs(v);
+        g[u].pb(v);
+        g[v].pb(u);
+    }
+    fill(c_head, -1);
+    dfs(1, -1);
+    HLD(1);
+    forall(i, 0, q){
+        fs(u);fs(v);
+        if(u == 0){
+            if(v == 1){
+                isone = !isone;
+                continue;
+            }
+            update(1, 0, pt-1, pos[v]);
+        }else if(u == 1){
+            if(isone)printf("1\n");
+            else if(v == 1){
+                printf("-1\n");
+            }else{
+                ans = query_HLD(v);
+                printf("%d\n", (ans != INT_MAX)? pos_id[ans] : -1);
             }
         }
-        printf("\n");
     }
     return 0;
 }
