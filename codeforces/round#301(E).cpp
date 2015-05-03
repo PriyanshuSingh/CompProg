@@ -93,73 +93,78 @@ typedef vector< pii > vpii;
 typedef vector< pib > vpib;
 
 const int MAXN = 100100;
-map<int, int> m;
-vi v;
-int n;
-int A[MAXN];
-int B[MAXN];
+map<ll, ll> ma;
+vector<ll> v;
+ll n;
+ll A[2 * MAXN];
+ll B[2 * MAXN];
 
-int i,j,k;
-ll count_inv(int A[], int start, int end){
-    if(start == end)return 0;
+ll i,j,k,m;
+ll count_inv(ll A[], ll start, ll end){
+    if(start >= end)return 0;
     else{
-        int mid = (start + end)>>1;
+        ll mid = (start + end)>>1;
         ll ans = count_inv(A, start, mid) + count_inv(A, mid + 1, end);
-       // trace3(start, mid, end)
-        for(i=start,j=mid+1,k=0; i<=mid && j<=end;k++){
+        for(i=start,j=mid+1,k=start; i<=mid && j<=end;){
             if(A[i] <= A[j]){
-                B[k] = A[i++];
+                B[k++] = A[i++];
+                
             }else{
-                B[k] = A[j++];
+                B[k++] = A[j++];
                 ans += (mid - i + 1);
             }
         }
         while(i<=mid)B[k++] = A[i++];
         while(j<=end)B[k++] = A[j++];
-        forall(m, 0, k){
-            A[m+start] = B[m];
+        for( m=start; m <= end; m++){
+            A[m] = B[m];
         }
       //  trace3(ans,start,end)
         return ans;
     }
 }
 
-ll count_inversion(int A[],int size){
+ll count_inversion(ll A[],ll size){
     return count_inv(A,0,size-1);
 }
 
 
 
 int main(){
-    int a,b;
-    s(n);
+    ll a,b;
+    sl(n);
     forall(i, 0, n){
-        s(a);s(b);
-        if(!in(a,m)){
-            m[a] = a;
+        sl(a);sl(b);
+        if(!in(a,ma)){
+            ma[a] = a;
             v.pb(a);    
         }
-        if(!in(b,m)){
-            m[b] = b;
+        if(!in(b,ma)){
+            ma[b] = b;
             v.pb(b);
         }
-        swap(m[a], m[b]);
+        swap(ma[a], ma[b]);
     }
     sort(all(v));
     forall(i, 0, v.size()){
-        A[i] = m[v[i]];
+        A[i] = ma[v[i]];
+//        printf("%lld ",A[i]);
     }
     ll ans = count_inversion(A,v.size());
-    //trace1(ans)
-    int ac_pos,cur_pos,in_bet;
+    ll ac_pos,cur_pos,in_bet;
     ll in_bet2;
     forall(i, 0, v.size()){
-        ac_pos = INDEX(v, m[v[i]]);
+        ac_pos = INDEX(v, ma[v[i]]);
+        if(v[ac_pos] != ma[v[i]] || ac_pos < 0 || ac_pos >= v.size())printf("screwed");
         cur_pos = i;
-        in_bet = abs(ac_pos - cur_pos) - 1;
-        in_bet2 = abs((ll)v[i] - (ll)m[v[i]]) - 1;
+        in_bet = abs(ac_pos - cur_pos) + 1;
+        in_bet2 = abs(v[i] - ma[v[i]]) + 1;
         ans += in_bet2 - in_bet;
     }
+//    for(int i=0; i<v.size() ; i++){
+//        printf("%lld ",A[i]);
+//    }
+//    printf("\n");
     printf("%lld\n",ans);
     return 0;
 } 
