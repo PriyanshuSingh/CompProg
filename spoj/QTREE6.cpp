@@ -109,7 +109,7 @@ vi g[N];
 int siz[N];               // depth of node, size of subtree at node
 int par[N];                    // par[i][node] = 2^i th parent of node
 int pt=0, pos[N], pos_id[N];       // base array, base pointer, position in base array
-int c_no=-1, c_head[N], c_ind[N];    // chain no, chain head, chain index
+int c_no=0, c_head[N], c_ind[N];    // chain no, chain head, chain index
 int st[2*N+10], qt[2*N+10];         // segment tree, query tree
 int lazy[2*N+10][2];
 int n_color[N][2];
@@ -120,17 +120,18 @@ void dfs(int cur, int p){
     par[cur] = p;
     foreach(v, g[cur]){
 	if(*v != p){
-	    dfs(*v);
+	    dfs(*v, cur);
 	    siz[cur] += siz[*v];
 	}
     }
 }
 
 void HLD(int cur){
+    
     if(c_head[c_no] == -1)c_head[c_no] = cur;
     c_ind[cur] = c_no;
     pos[cur] = pt++;
-    pos_ind[pos[cur]] = cur;
+    pos_id[pos[cur]] = cur;
     int mxv = -1, mx = -1;
     foreach(v, g[cur]){
 	if(*v != par[cur]){
@@ -166,9 +167,9 @@ void lazy_update(int cur, int s, int e){
     if(lazy[cur][0] != 0 || lazy[cur][1] != 0){
 	if(s != e){
 	    lazy[cur<<1][0] += lazy[cur][0];
-	    lazy[cur<<1 + 1][0] += lazy[cur][0];
+	    lazy[(cur<<1) + 1][0] += lazy[cur][0];
 	    lazy[cur<<1][1] += lazy[cur][1];
-	    lazy[cur<<1 + 1][1] += lazy[cur][1];
+	    lazy[(cur<<1) + 1][1] += lazy[cur][1];
 	    lazy[cur][1] = lazy[cur][0] = 0;
 	}else{
 	    n_color[pos_id[s]][0] += lazy[cur][0];
@@ -202,8 +203,8 @@ void change_color(int cur, int s, int e, int x){
     }else{
 	int m = (s+e)>>1;
 	int c1 = cur<<1, c2 = c1 | 1;
-	update_color(c1, s, m, val, x);
-	update_color(c2, m+1, e, val, x);
+	change_color(c1, s, m, x);
+	change_color(c2, m+1, e, x);
 	st[cur]  = st[c1] + st[c2];
     }
 }
@@ -212,24 +213,24 @@ void query_con(int cur, int s, int e, int x, int color){
     lazy_update(cur, s, e);
     if(x < s || e < x)return;
     if(x == s && s == e){
-	qt[1] = n_color[pos_id[x]][color];
+	    qt[1] = n_color[pos_id[x]][color];
     }else{
-	int m = (s+e)>>1;
-	int c1 = cur<<1, c2 = c1 | 1;
-	query_con(c1, s, m, val, x);
-	query_con(c2, m+1, e, val, x);
+	    int m = (s+e)>>1;
+	    int c1 = cur<<1, c2 = c1 | 1;
+	    query_con(c1, s, m, x, color);
+	    query_con(c2, m+1, e, x, color);
     }
 }
 
 void update_con(int cur, int s, int e, int St, int En, int val, int color){
     if(En < s || e < St)return;
     if(St <= s && e <= En){
-	lazy[cur][color] += val;
+	    lazy[cur][color] += val;
     }else{
-	int m = (s + e)>>1;
-	int c1 = cur<<1, c2 = c1 | 1;
-	update_con(c1, s, m, St, En, val, color);
-	update_con(c2, m+1, e, St, En, val, color);
+	    int m = (s + e)>>1;
+	    int c1 = cur<<1, c2 = c1 | 1;
+	    update_con(c1, s, m, St, En, val, color);
+	    update_con(c2, m+1, e, St, En, val, color);
     }
 }
 // prequisite: v should have same color
@@ -237,62 +238,75 @@ int color_parent(int v, int val=0){
     int u = c_head[c_ind[v]], color = col[v];
     query_color(1, 0, pt-1, pos[u], pos[v]);
     if(color*(pos[u] - pos[v] + 1) == qt[1]){
-	if(val)update_con(1, 0, pt-1, pos[u], pos[v], val, color);
-	if(par[u] != -1 && col[par[u]] == color){
-	    return color_parent(par[u]);
-	}
-	return pos[u];
+	    if(val != 0)update_con(1, 0, pt-1, pos[u], pos[v], val, color);
+	    if(par[u] != -1 && col[par[u]] == color){
+	        return color_parent(par[u], val);
+	    }else{
+            if(par[u] != -1 && val != 0)update_con(1, 0, pt-1, pos[par[u]], pos[par[u]], val, color);
+            return pos[u];
+        }    
     }else{
-	int l = pos[u];
-	int r = pos[v];
-	int t = pos[v];	
-	while(l < r){
-	    int m = (l+r)>>1;
-	    query_color(1, 0, pt-1, m, r);
-	    if(qt[1] == color*(m - r + 1)){
-		t = m;
-		r = m-1;
+	    int l = pos[u];
+	    int r = pos[v];
+	    int t = pos[v];	
+	    while(l < r){
+	        int m = (l+r)>>1;
+	        query_color(1, 0, pt-1, m, r);
+	        if(qt[1] == color*(m - r + 1)){
+		        t = m;
+		        r = m-1;
+	        }else{
+		        l = m+1;
+	        }
 	    }
-	    else{
-		l = m+1;
-	    }
-	}
-	if(val)update_con(1, 0, pt-1, t, pos[v], val, color);
-	return t;
+	    if(val != 0)update_con(1, 0, pt-1, t-1, pos[v], val, color);
+	    return t;
     }
 }
 
 int main(){
-    int n,u,v,t,a,cl;
+    int n,u,v,t,a;
     fs(n);
     forall(i, 0, n-1){
-	fs(u);fs(v);
-	g[u].pb(v);
-	g[v].pb(u);
+	    fs(u);fs(v);
+	    g[u].pb(v);
+	    g[v].pb(u);
     }
-    dfs(1, -1);
-    HLD(1);
+    fill(c_head,-1);
+    fill(col,0);
+    dfs(7, -1);
+    HLD(7);
     make_tree(1, 0, pt-1);
+    forall(i, 1, n+1){
+        n_color[i][0] = siz[i];
+        n_color[i][1] = 1; 
+    }
     fs(t);
     while(t--){
-	fs(u);fs(v);
-	if(u == 0){
-	    a = color_parent(v);
-	    query_con(1, 0, pt-1, a, col[v]);
-	    printf("%d\n", qt[1]);
-	}else{
-	    change_color(1, 0, pt-1, pos[v]);
-	    cl = !col[v];
-	    if(par[v] != -1){
-		if(par[v] == cl){
-		    query_con(1, 0, pt-1, pos[v], cl);
-		    color_parent(par[v], qt[1]);
-		}else{
-		    query_con(1, 0, pt-1, pos[v], !cl);
-		    color_parent(par[v], -qt[1]);
-		}
+	    fs(u);fs(v);
+	    if(u == 0){
+	        a = color_parent(v);
+	        query_con(1, 0, pt-1, a, col[v]);
+	        printf("%d\n", qt[1]);
+	    }else{
+	        change_color(1, 0, pt-1, pos[v]);
+	        if(par[v] != -1){
+                //trace4(par[v], v, col[par[v]], col[v])
+		        if(col[par[v]] == col[v]){ // now color is inverted!!
+		            query_con(1, 0, pt-1, pos[v], col[v]);
+                    //trace2(qt[1],par[v])
+		            color_parent(par[v], qt[1]);
+                    query_con(1, 0, pt-1, pos[v], !col[v]);
+                    update_con(1, 0, pt-1, pos[par[v]], pos[par[v]], -qt[1], !col[v]);
+		        }else{
+		            query_con(1, 0, pt-1, pos[v], !col[v]);
+                    //trace2(-qt[1],par[v])
+		            color_parent(par[v], -qt[1]);
+                    query_con(1, 0, pt-1, pos[v], col[v]);
+                    update_con(1, 0, pt-1, pos[par[v]], pos[par[v]], qt[1], col[v]);
+		        }    
+	        }
 	    }
-	}
     }
     return 0;
 }

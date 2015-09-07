@@ -84,6 +84,8 @@ const int fxx[8][2] = {{0,1}, {0,-1}, {1,0}, {-1,0}, {1,1}, {1,-1}, {-1,1}, {-1,
 #define ui unsigned int
 #define us unsigned short
 
+#define gc getchar_unlocked
+
 typedef vector<int> vi;
 typedef pair<int, int> pii;
 typedef pair< pii, int> piii;
@@ -92,54 +94,129 @@ typedef pair<int, bool> pib;
 typedef vector< pii > vpii;
 typedef vector< pib > vpib;
 
-const int MOD = 1e9+7;
-const int MAXN = 210;
-int f[MAXN];
-int K,N;
-int memo[MAXN];
+
+inline void fs(int &x)
+{
+    register int c = gc();
+    x = 0;
+    int neg = 0;
+    for(;((c<48 || c>57) && c != '-');c = gc());
+    if(c=='-') {neg=1;c=gc();}
+    for(;c>47 && c<58;c = gc()) {x = (x<<1) + (x<<3) + c - 48;}
+    if(neg) x=-x;
+}
+
+const int MAXN = 1e5+10;
+int const MAXK = 510;
+//int st[4*MAXN];
+int A[MAXN];
+int w[MAXN];
+ll memo[MAXN][MAXK];
+int N,M,K;
+
+//void update(int cur, int s, int e, int St, int En, int val){
+//    if(En < s || e < St)return;
+//    else if(St<=s && e<=En){
+//        st[cur] = miN(st[cur], val);
+//    }else{
+//        update(cur<<1, s, (s+e)>>1, St, En, val);
+//        update((cur<<1)+1, ((s+e)>>1)+1, e, St, En, val);
+//    }
+//}
+//
+//void push_st(int cur, int s, int e){
+//    if(s==e){
+//        w[s] = st[cur];
+//        st[cur] = INF;
+//    }else{
+//        int c1 = cur<<1,c2 = c1 | 1;
+//        int mid = (s+e)>>1;
+//        st[c1] = miN(st[c1], st[cur]);
+//        st[c2] = miN(st[c2], st[cur]);
+//        st[cur] = INF;
+//        push_st(c1, s, mid);
+//        push_st(c2, mid+1, e);
+//    }
+//}
+//
+//ll DP(int i, int j){
+//    //trace3(i, j, memo[i][j])
+//    if(memo[i][j] != -1)return memo[i][j];
+//    else if(i == 0){
+//        memo[i][j] = (w[i] <= j)?A[i]:0;
+//    }else{
+//        memo[i][j] = maX(memo[i][j], DP(i-1,j));
+//        if(w[i] <= j)memo[i][j] = maX(memo[i][j], DP(i-1,j-w[i]) + A[i]);
+//    }
+//    return memo[i][j];
+//}
+
+piii CC[MAXN];
+bool cmp(piii a, piii b){
+    return a.S < b.S;
+}
+
+
 int main(){
     int T;
+    ll sum=0;
     s(T);
+    //forall(i, 0, 4*MAXN)st[i] = INF;
     while(T--){
-        s(N);s(K);
-        int temp;
-        fill(f,0);
-        int mx=-1;
+        sum=0;
+        fs(N);fs(K);fs(M);
         forall(i, 0, N){
-            s(temp);
-            f[temp]++;
-            mx = maX(mx, temp);
+            fs(A[i]);
+            sum+=A[i];
         }
-        fill(memo,0);
-        int sz = f[mx];
-        memo[0]=1;
-        forall(i, 1, f[mx]+1){
-            memo[0] = (1LL*memo[0]*i)%MOD;
+        forall(i, 0, M){
+            int L,R,C;
+            fs(L);fs(R);fs(C);
+            L--;R--;
+            CC[i].S = C;
+            CC[i].F.F = L;
+            CC[i].F.S = R;
+            //update(1, 0, N-1, L, R, C);
         }
-        //trace3(memo[0],mx,f[mx])
-        for(int i = mx-1; i>=0; i--){
-            if(!f[i])continue;
-            int a = 1;
-            forall(j, 1, f[i]){
-                a = (1LL*a*(sz+j))%MOD;
+        sort(CC,CC+M,cmp);
+        //forall(i, 0, M)trace2(CC[i].S, i);
+        int n = 0;
+        forall(i, 0, N){
+            w[i] = 2222;
+            if(A[i] < 0){
+                forall(j, 0, M){
+                    //trace1(CC[j].F.F)
+                    if(CC[j].F.F <= i && i <= CC[j].F.S){
+                        w[i] = CC[j].S;
+                        break;
+                    }
+                }
+                if(w[i] <= K){
+                    A[n] = -A[i];
+                    w[n] = w[i];
+                    //trace3(A[n], w[n], n)
+                    n++;
+                }
             }
-            for(int j=K-1;j>=0;j--){
-                //trace2(memo[j], j)
-                memo[j+1] += (((1LL*f[i]*memo[j])%MOD)*a)%MOD;
-                memo[j+1] = (memo[j+1] > MOD)?memo[j+1]-MOD:memo[j+1];
-                memo[j] = (((1LL*sz*memo[j])%MOD)*a)%MOD;
-                //trace2(j,memo[j])
+            //trace1(w[i])
+        }
+        //push_st(1, 0, N-1);
+        
+        forall(i, 0, N){
+
+        }
+        if(n==0)printf("%lld\n",sum);
+        else{
+            forall(j, 0, K+1){
+                memo[0][j] = (w[0]<=j)?A[0]:0;
             }
-            sz+=f[i];
-            //trace1("pause");
+            forall(i, 1, n){
+                forall(j, 0, K+1){
+                    memo[i][j] = maX(memo[i-1][j], (w[i]<=j)?memo[i-1][j-w[i]]+A[i]:0);
+                }
+            }
+            //trace1(K)
+            printf("%lld\n",sum+memo[n-1][K]);
         }
-        int ans=0;
-        forall(i, 0, K){
-            ans += memo[i];
-            //trace2(memo[i], i)
-            ans = (ans > MOD)?ans-MOD:ans;
-        }
-        printf("%d\n",ans);
     }
-    return 0;
 }

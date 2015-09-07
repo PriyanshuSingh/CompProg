@@ -92,54 +92,40 @@ typedef pair<int, bool> pib;
 typedef vector< pii > vpii;
 typedef vector< pib > vpib;
 
-const int MOD = 1e9+7;
-const int MAXN = 210;
-int f[MAXN];
-int K,N;
-int memo[MAXN];
+const int MAXN = 4010;
+
+int N,M;
+
+bool g[MAXN][MAXN];
+pii edge[MAXN];
+
+int rec[MAXN];
 int main(){
-    int T;
-    s(T);
-    while(T--){
-        s(N);s(K);
-        int temp;
-        fill(f,0);
-        int mx=-1;
-        forall(i, 0, N){
-            s(temp);
-            f[temp]++;
-            mx = maX(mx, temp);
-        }
-        fill(memo,0);
-        int sz = f[mx];
-        memo[0]=1;
-        forall(i, 1, f[mx]+1){
-            memo[0] = (1LL*memo[0]*i)%MOD;
-        }
-        //trace3(memo[0],mx,f[mx])
-        for(int i = mx-1; i>=0; i--){
-            if(!f[i])continue;
-            int a = 1;
-            forall(j, 1, f[i]){
-                a = (1LL*a*(sz+j))%MOD;
-            }
-            for(int j=K-1;j>=0;j--){
-                //trace2(memo[j], j)
-                memo[j+1] += (((1LL*f[i]*memo[j])%MOD)*a)%MOD;
-                memo[j+1] = (memo[j+1] > MOD)?memo[j+1]-MOD:memo[j+1];
-                memo[j] = (((1LL*sz*memo[j])%MOD)*a)%MOD;
-                //trace2(j,memo[j])
-            }
-            sz+=f[i];
-            //trace1("pause");
-        }
-        int ans=0;
-        forall(i, 0, K){
-            ans += memo[i];
-            //trace2(memo[i], i)
-            ans = (ans > MOD)?ans-MOD:ans;
-        }
-        printf("%d\n",ans);
+    s(N);s(M);
+    fill(rec,0);
+    fill(g, 0);
+    forall(i, 0, M){
+        int a,b;
+        s(a);s(b);
+        edge[i] = mp(a,b);
+        g[a][b] = g[b][a] = true;
     }
+    forall(i, 0, MAXN){
+        forall(j, 0, MAXN){
+            rec[i] += (g[i][j])?1:0;
+        }
+    }
+    int mn = INF;
+    forall(i, 0, M){
+        int a = edge[i].F;
+        int b = edge[i].S;
+        forall(j, 0, N){
+            if(g[a][j] && g[b][j]){
+                mn = miN(mn, rec[a] + rec[b] + rec[j]);
+            }
+        }
+    }
+    mn = (mn == INF)?-1:mn-6;
+    printf("%d\n",mn);
     return 0;
 }

@@ -91,55 +91,43 @@ typedef vector< piii > vpiii;
 typedef pair<int, bool> pib;
 typedef vector< pii > vpii;
 typedef vector< pib > vpib;
+const int MAXN = 1e5+10;
+pii vertex[MAXN];
+pair<long double, int> P[MAXN];
+int ans[MAXN];
+int T,N,M;
 
-const int MOD = 1e9+7;
-const int MAXN = 210;
-int f[MAXN];
-int K,N;
-int memo[MAXN];
+// http://en.wikipedia.org/wiki/Shoelace_formula
+long double area(){
+    long double a = 0.0;
+    forall(i, 0, M){
+        int j = (i+1 == M)?0:i+1;
+        a += 1LL*vertex[i].F*vertex[j].S;
+        a -= 1LL*vertex[j].F*vertex[i].S;
+    }    
+    a = abs(a) / 2.0;
+    return a;
+}
+
 int main(){
-    int T;
     s(T);
     while(T--){
-        s(N);s(K);
-        int temp;
-        fill(f,0);
-        int mx=-1;
+        s(N);
         forall(i, 0, N){
-            s(temp);
-            f[temp]++;
-            mx = maX(mx, temp);
-        }
-        fill(memo,0);
-        int sz = f[mx];
-        memo[0]=1;
-        forall(i, 1, f[mx]+1){
-            memo[0] = (1LL*memo[0]*i)%MOD;
-        }
-        //trace3(memo[0],mx,f[mx])
-        for(int i = mx-1; i>=0; i--){
-            if(!f[i])continue;
-            int a = 1;
-            forall(j, 1, f[i]){
-                a = (1LL*a*(sz+j))%MOD;
+            s(M);
+            forall(j, 0, M){
+                int x,y;
+                s(x);s(y);
+                vertex[j] = mp(x,y);
             }
-            for(int j=K-1;j>=0;j--){
-                //trace2(memo[j], j)
-                memo[j+1] += (((1LL*f[i]*memo[j])%MOD)*a)%MOD;
-                memo[j+1] = (memo[j+1] > MOD)?memo[j+1]-MOD:memo[j+1];
-                memo[j] = (((1LL*sz*memo[j])%MOD)*a)%MOD;
-                //trace2(j,memo[j])
-            }
-            sz+=f[i];
-            //trace1("pause");
+            P[i] = mp(area(),i);
         }
-        int ans=0;
-        forall(i, 0, K){
-            ans += memo[i];
-            //trace2(memo[i], i)
-            ans = (ans > MOD)?ans-MOD:ans;
+        sort(P, P+N);
+        forall(i, 0, N){
+            //trace2(P[i].F,P[i].S)
+            ans[P[i].S] = i;
         }
-        printf("%d\n",ans);
+        forall(i, 0, N)printf("%d ",ans[i]);
+        printf("\n");
     }
-    return 0;
 }

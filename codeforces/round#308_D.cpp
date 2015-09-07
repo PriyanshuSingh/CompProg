@@ -92,54 +92,66 @@ typedef pair<int, bool> pib;
 typedef vector< pii > vpii;
 typedef vector< pib > vpib;
 
-const int MOD = 1e9+7;
-const int MAXN = 210;
-int f[MAXN];
-int K,N;
-int memo[MAXN];
+pii slope[2010][2010];
+pii pt[2010];
+int g[2010][2010];
+int N;
+int m[2010];
+
+inline int eql(pii a,pii b){
+    return (a.F == b.F && a.S == b.S);
+}
+
+inline ll nc3(int n){
+    ll ans = n;
+    ans *=n-1;
+    ans /=2;
+    ans *= n-2;
+    ans /= 3;
+    return ans;
+}
 int main(){
-    int T;
-    s(T);
-    while(T--){
-        s(N);s(K);
-        int temp;
-        fill(f,0);
-        int mx=-1;
-        forall(i, 0, N){
-            s(temp);
-            f[temp]++;
-            mx = maX(mx, temp);
-        }
-        fill(memo,0);
-        int sz = f[mx];
-        memo[0]=1;
-        forall(i, 1, f[mx]+1){
-            memo[0] = (1LL*memo[0]*i)%MOD;
-        }
-        //trace3(memo[0],mx,f[mx])
-        for(int i = mx-1; i>=0; i--){
-            if(!f[i])continue;
-            int a = 1;
-            forall(j, 1, f[i]){
-                a = (1LL*a*(sz+j))%MOD;
-            }
-            for(int j=K-1;j>=0;j--){
-                //trace2(memo[j], j)
-                memo[j+1] += (((1LL*f[i]*memo[j])%MOD)*a)%MOD;
-                memo[j+1] = (memo[j+1] > MOD)?memo[j+1]-MOD:memo[j+1];
-                memo[j] = (((1LL*sz*memo[j])%MOD)*a)%MOD;
-                //trace2(j,memo[j])
-            }
-            sz+=f[i];
-            //trace1("pause");
-        }
-        int ans=0;
-        forall(i, 0, K){
-            ans += memo[i];
-            //trace2(memo[i], i)
-            ans = (ans > MOD)?ans-MOD:ans;
-        }
-        printf("%d\n",ans);
+    //printf("%d",gcd(0,2));
+    //printf("%lld\n",nc3(2000));
+    s(N);
+    fill(m,0);
+    forall(i, 0, N){
+        int x,y;
+        s(x);s(y);
+        pt[i] = mp(x,y);
     }
-    return 0;
+    forall(i, 0, N){
+        forall(j, i+1, N){
+            int xx = pt[i].F - pt[j].F;
+            int yy = pt[i].S - pt[j].S;
+            if(yy == 0)swap(yy, xx);
+            int g = gcd(xx,yy);
+            slope[i][j] = mp(xx/g,yy/g);
+            slope[j][i] = mp(xx/g,yy/g);
+        }
+        slope[i][i] = mp(0,0);
+        
+    }
+    forall(i, 0, N){
+        sort(slope[i], slope[i]+N);
+        int c=1;
+        pii prev = slope[i][0];
+        forall(j, 1, N){
+            if(eql(prev, slope[i][j]))c++;
+            else{
+                m[c]++;
+                c=1;
+                prev = slope[i][j];
+            }
+        }
+        m[c]++;
+    }
+    ll ans = nc3(N);
+    forall(i, 2, 2001){
+        trace2(m[i],i);
+        m[i]/=(i+1);
+        trace2(m[i],nc3(i+1)*m[i]);
+        ans -= nc3(i+1)*m[i];
+    }
+    printf("%lld",ans);
 }

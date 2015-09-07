@@ -91,55 +91,68 @@ typedef vector< piii > vpiii;
 typedef pair<int, bool> pib;
 typedef vector< pii > vpii;
 typedef vector< pib > vpib;
-
-const int MOD = 1e9+7;
-const int MAXN = 210;
-int f[MAXN];
-int K,N;
-int memo[MAXN];
+const int FMOD = 33330;
+const int MOD = 99991;
+int FIB[FMOD];
+int memo[1001][FMOD][2];
+int A[2010];
+inline int moddf(int a){
+    return (a >= FMOD)?a-FMOD:a;
+}
+inline int modd(int a){
+    return (a >= MOD)?a-MOD:a;
+}
 int main(){
-    int T;
-    s(T);
-    while(T--){
-        s(N);s(K);
-        int temp;
-        fill(f,0);
-        int mx=-1;
-        forall(i, 0, N){
-            s(temp);
-            f[temp]++;
-            mx = maX(mx, temp);
-        }
-        fill(memo,0);
-        int sz = f[mx];
-        memo[0]=1;
-        forall(i, 1, f[mx]+1){
-            memo[0] = (1LL*memo[0]*i)%MOD;
-        }
-        //trace3(memo[0],mx,f[mx])
-        for(int i = mx-1; i>=0; i--){
-            if(!f[i])continue;
-            int a = 1;
-            forall(j, 1, f[i]){
-                a = (1LL*a*(sz+j))%MOD;
-            }
-            for(int j=K-1;j>=0;j--){
-                //trace2(memo[j], j)
-                memo[j+1] += (((1LL*f[i]*memo[j])%MOD)*a)%MOD;
-                memo[j+1] = (memo[j+1] > MOD)?memo[j+1]-MOD:memo[j+1];
-                memo[j] = (((1LL*sz*memo[j])%MOD)*a)%MOD;
-                //trace2(j,memo[j])
-            }
-            sz+=f[i];
-            //trace1("pause");
-        }
-        int ans=0;
-        forall(i, 0, K){
-            ans += memo[i];
-            //trace2(memo[i], i)
-            ans = (ans > MOD)?ans-MOD:ans;
-        }
-        printf("%d\n",ans);
+    int N,K;
+    s(N);s(K);
+    int sm=0;
+    forall(i, 0, N){
+        s(A[i]);
+        A[i] %= FMOD;
+        sm+=A[i];
+        //trace1(A[i])
     }
-    return 0;
+    sm++;
+    fill(memo,0);
+    bool rev=false;
+    if(K>1000){
+        K = N-K;
+        rev=true;
+    }
+    FIB[0] = 0;FIB[1] = 1;
+    forall(i, 2, FMOD)FIB[i] = modd(FIB[i-1]+FIB[i-2]);
+    //forall(i, 0, 20)trace2(FIB[i], i);
+    memo[0][0][0] = 1;
+    int prev = 0;
+    int next = 1;
+    forall(i, 0, N){
+        forall(j, 0, miN(FMOD,sm)){
+            forall(k, 0, K){
+                memo[k][j][next] += memo[k][j][prev];
+                if(memo[k][j][prev] > 0){
+                    //trace4(j, A[i],memo[k][j][prev],k+1)
+                    memo[k+1][moddf(j+A[i])][next] += memo[k][j][prev];
+                }
+                memo[k][j][prev] = 0;
+            }
+        }
+        forall(j, 0, miN(FMOD, sm)){
+            memo[K][j][prev] = memo[K][j][next];
+            //trace3(memo[K][j][next], K, prev);
+        }
+        next = prev;
+        prev = (prev+1)&1;
+        //trace1(prev);
+    }
+    int ans=0;
+    int ff = (sm-1) % FMOD;
+    forall(i, 0, miN(FMOD, sm)){
+        //trace2(memo[K][i][prev],i)
+        if(!rev){
+            ans = modd(ans + (1LL*memo[K][i][prev]*FIB[i])%MOD);
+        }else{
+            ans = modd(ans + (1LL*memo[K][i][prev]*FIB[(ff-i<0)?ff-i+FMOD:ff-i])%MOD);
+        }
+    }
+    printf("%d\n",ans);
 }

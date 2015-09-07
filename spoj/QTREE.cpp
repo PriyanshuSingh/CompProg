@@ -191,6 +191,7 @@ void query_st(int cur, int s, int e, int S, int E){
     query_st(c2, m, e, S, E);
     qt[cur] = (qt[c1] > qt[c2]) ? qt[c1] : qt[c2];
 }
+
 // v ancestor of u
 int query_HLD(int u, int v){
     int uchain, vchain = c_ind[v];

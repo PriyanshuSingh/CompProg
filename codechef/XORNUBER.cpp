@@ -92,54 +92,26 @@ typedef pair<int, bool> pib;
 typedef vector< pii > vpii;
 typedef vector< pib > vpib;
 
-const int MOD = 1e9+7;
-const int MAXN = 210;
-int f[MAXN];
-int K,N;
-int memo[MAXN];
 int main(){
-    int T;
-    s(T);
-    while(T--){
-        s(N);s(K);
-        int temp;
-        fill(f,0);
-        int mx=-1;
-        forall(i, 0, N){
-            s(temp);
-            f[temp]++;
-            mx = maX(mx, temp);
+    int t;
+    s(t);
+    int A[31];
+    A[0]=0;
+    int a=1;
+    forall(i, 1, 31){
+        A[i]=A[i-1]+a;
+        a *= 2;
+        //trace2(i, A[i]);
+    }
+    A[0]=-1;
+    while(t--){
+        int n;
+        s(n);
+        int ans=-1;
+        forall(i, 1, 31){
+            if(A[i] == n)ans=A[i-1];
         }
-        fill(memo,0);
-        int sz = f[mx];
-        memo[0]=1;
-        forall(i, 1, f[mx]+1){
-            memo[0] = (1LL*memo[0]*i)%MOD;
-        }
-        //trace3(memo[0],mx,f[mx])
-        for(int i = mx-1; i>=0; i--){
-            if(!f[i])continue;
-            int a = 1;
-            forall(j, 1, f[i]){
-                a = (1LL*a*(sz+j))%MOD;
-            }
-            for(int j=K-1;j>=0;j--){
-                //trace2(memo[j], j)
-                memo[j+1] += (((1LL*f[i]*memo[j])%MOD)*a)%MOD;
-                memo[j+1] = (memo[j+1] > MOD)?memo[j+1]-MOD:memo[j+1];
-                memo[j] = (((1LL*sz*memo[j])%MOD)*a)%MOD;
-                //trace2(j,memo[j])
-            }
-            sz+=f[i];
-            //trace1("pause");
-        }
-        int ans=0;
-        forall(i, 0, K){
-            ans += memo[i];
-            //trace2(memo[i], i)
-            ans = (ans > MOD)?ans-MOD:ans;
-        }
-        printf("%d\n",ans);
+        printf("%d\n",ans);    
     }
     return 0;
 }

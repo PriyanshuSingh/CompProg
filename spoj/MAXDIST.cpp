@@ -91,55 +91,107 @@ typedef vector< piii > vpiii;
 typedef pair<int, bool> pib;
 typedef vector< pii > vpii;
 typedef vector< pib > vpib;
-
-const int MOD = 1e9+7;
-const int MAXN = 210;
-int f[MAXN];
-int K,N;
-int memo[MAXN];
-int main(){
-    int T;
-    s(T);
-    while(T--){
-        s(N);s(K);
-        int temp;
-        fill(f,0);
-        int mx=-1;
-        forall(i, 0, N){
-            s(temp);
-            f[temp]++;
-            mx = maX(mx, temp);
+const int MAXN = 10010;
+const int LOGN = 15;
+int depth[MAXN];
+int par[MAXN][LOGN];
+int N;
+vi g[MAXN];
+vi d;
+int LCA(int u, int v){
+    if(depth[u] < depth[v]) swap(u, v);
+    int diff = depth[u] - depth[v];
+    forall(i, 0, LOGN)if((diff>>i)&1)u = par[i][u];
+    if(u == v) return u;
+    for(int i=LOGN-1; i >= 0; i--){
+        if(par[i][u] != par[i][v]){
+            u = par[i][u];
+            v = par[i][v];
         }
-        fill(memo,0);
-        int sz = f[mx];
-        memo[0]=1;
-        forall(i, 1, f[mx]+1){
-            memo[0] = (1LL*memo[0]*i)%MOD;
-        }
-        //trace3(memo[0],mx,f[mx])
-        for(int i = mx-1; i>=0; i--){
-            if(!f[i])continue;
-            int a = 1;
-            forall(j, 1, f[i]){
-                a = (1LL*a*(sz+j))%MOD;
-            }
-            for(int j=K-1;j>=0;j--){
-                //trace2(memo[j], j)
-                memo[j+1] += (((1LL*f[i]*memo[j])%MOD)*a)%MOD;
-                memo[j+1] = (memo[j+1] > MOD)?memo[j+1]-MOD:memo[j+1];
-                memo[j] = (((1LL*sz*memo[j])%MOD)*a)%MOD;
-                //trace2(j,memo[j])
-            }
-            sz+=f[i];
-            //trace1("pause");
-        }
-        int ans=0;
-        forall(i, 0, K){
-            ans += memo[i];
-            //trace2(memo[i], i)
-            ans = (ans > MOD)?ans-MOD:ans;
-        }
-        printf("%d\n",ans);
     }
-    return 0;
+    return par[0][u];
+}
+
+
+int BFS(int u){
+    queue<int> Q;
+    int mxi=-1,mx=-1;
+    forall(i, 0, N+1)depth[i]=INF;
+    depth[u] = 0;
+    par[0][u] = -1;
+    Q.push(u);
+    while(!Q.empty()){
+        int t = Q.front();
+        Q.pop();
+        foreach(v, g[t]){
+            if(depth[*v] == INF){
+                depth[*v] = depth[t] + 1;
+                par[0][*v] = t;
+                Q.push(*v);
+                if(mx < depth[*v]){
+                    mxi = *v;
+                    mx = depth[*v];
+                }
+            }
+        }
+    }
+    return mxi;
+}
+
+
+int main(){
+    int T,maxd;
+    s(T);
+    forall(i, 0, MAXN)g[i].clear();
+    while(T--){
+        fill(par,-1);
+        d.clear();
+        s(N);
+        forall(i, 0, N-1){
+            int a,b;
+            s(a);s(b);
+            g[a].pb(b);
+            g[b].pb(a);
+        }
+        maxd = BFS(BFS(1));
+        //trace1(maxd)
+        forall(i, 1, LOGN){
+            forall(j, 0, N+1)if(par[i-1][j] != -1)par[i][j] = par[i-1][par[i-1][j]];           
+        }
+        forall(i, 1, N+1){
+            if(depth[i] == depth[maxd])d.pb(i);
+        }
+        int lca = d[0];
+        //trace2(lca,d.size())
+        //trace1(depth[maxd])
+        //trace1(maxd);
+        forall(i, 1, d.size()){
+            lca = LCA(lca, d[i]);
+            //trace1(d[i])
+        }
+        
+        int lca2;
+        fill(par,-1);
+        d.clear();
+        maxd = BFS(maxd);
+        //trace2(maxd,depth[maxd])
+        forall(i, 1, LOGN){
+            forall(j, 0, N+1)if(par[i-1][j] != -1)par[i][j] = par[i-1][par[i-1][j]];           
+        }
+        forall(i, 1, N+1){
+            if(depth[i] == depth[maxd])d.pb(i);
+            //trace1(i)
+        }
+        lca2 = d[0];
+        //trace2(lca2,d.size());
+        forall(i, 1, d.size()){
+            lca2 = LCA(lca2, d[i]);
+            //trace1(d[i])
+        }
+        if(depth[lca] > depth[lca2])swap(lca, lca2);
+        //trace3(depth[lca2],lca2,lca);
+        if(depth[lca2] - depth[lca] > 1)printf("YES\n");
+        else printf("NO\n");
+        forall(i, 0, N+1)g[i].clear();
+    }
 }

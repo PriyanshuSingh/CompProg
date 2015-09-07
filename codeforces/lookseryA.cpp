@@ -92,54 +92,41 @@ typedef pair<int, bool> pib;
 typedef vector< pii > vpii;
 typedef vector< pib > vpib;
 
-const int MOD = 1e9+7;
-const int MAXN = 210;
-int f[MAXN];
-int K,N;
-int memo[MAXN];
+const int MAXN = 60;
+char a[MAXN][MAXN];
+int di[][2] = {{0,0},{0,1},{1,1},{1,0}};
+int F = 0;
+int A = 1;
+int C = 2;
+int E = 3;
+int n,m;
+
 int main(){
-    int T;
-    s(T);
-    while(T--){
-        s(N);s(K);
-        int temp;
-        fill(f,0);
-        int mx=-1;
-        forall(i, 0, N){
-            s(temp);
-            f[temp]++;
-            mx = maX(mx, temp);
-        }
-        fill(memo,0);
-        int sz = f[mx];
-        memo[0]=1;
-        forall(i, 1, f[mx]+1){
-            memo[0] = (1LL*memo[0]*i)%MOD;
-        }
-        //trace3(memo[0],mx,f[mx])
-        for(int i = mx-1; i>=0; i--){
-            if(!f[i])continue;
-            int a = 1;
-            forall(j, 1, f[i]){
-                a = (1LL*a*(sz+j))%MOD;
+    s(n);s(m);
+    int ans;
+    int t;
+    ans = 0;
+    forall(i, 0, n)ss(a[i]);
+    forall(i, 0, n){
+        forall(j, 0, m){
+            t = 0;
+            forall(k, 0, 4){
+                int x = i + di[k][0];
+                int y = j + di[k][1];
+                if(x >= n || y >= m)continue;
+                if(a[x][y] == 'f'){
+                    t += 1<<F;
+                }else if(a[x][y] == 'a'){
+                    t += 1<<A;
+                }else if(a[x][y] == 'c'){
+                    t += 1<<C;
+                }else if(a[x][y] == 'e'){
+                    t += 1<<E;
+                }
             }
-            for(int j=K-1;j>=0;j--){
-                //trace2(memo[j], j)
-                memo[j+1] += (((1LL*f[i]*memo[j])%MOD)*a)%MOD;
-                memo[j+1] = (memo[j+1] > MOD)?memo[j+1]-MOD:memo[j+1];
-                memo[j] = (((1LL*sz*memo[j])%MOD)*a)%MOD;
-                //trace2(j,memo[j])
-            }
-            sz+=f[i];
-            //trace1("pause");
+            //trace1(t)
+            if(t == 15)ans++;
         }
-        int ans=0;
-        forall(i, 0, K){
-            ans += memo[i];
-            //trace2(memo[i], i)
-            ans = (ans > MOD)?ans-MOD:ans;
-        }
-        printf("%d\n",ans);
     }
-    return 0;
+    printf("%d\n",ans);
 }

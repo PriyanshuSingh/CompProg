@@ -92,54 +92,42 @@ typedef pair<int, bool> pib;
 typedef vector< pii > vpii;
 typedef vector< pib > vpib;
 
-const int MOD = 1e9+7;
-const int MAXN = 210;
-int f[MAXN];
-int K,N;
-int memo[MAXN];
+const int BLACK = 0,BLUE = 1,RED = 2,GREEN = 3,YELLOW = 4, ORANGE = 5;
+int T;
+bool color[6][3];
 int main(){
-    int T;
     s(T);
     while(T--){
-        s(N);s(K);
-        int temp;
-        fill(f,0);
-        int mx=-1;
-        forall(i, 0, N){
-            s(temp);
-            f[temp]++;
-            mx = maX(mx, temp);
-        }
-        fill(memo,0);
-        int sz = f[mx];
-        memo[0]=1;
-        forall(i, 1, f[mx]+1){
-            memo[0] = (1LL*memo[0]*i)%MOD;
-        }
-        //trace3(memo[0],mx,f[mx])
-        for(int i = mx-1; i>=0; i--){
-            if(!f[i])continue;
-            int a = 1;
-            forall(j, 1, f[i]){
-                a = (1LL*a*(sz+j))%MOD;
+        char str[100];
+        fill(color, 0);
+        forall(i, 0, 6){
+            ss(str);
+            if(str[0] == 'b'){
+                if(str[2] == 'u'){
+                    color[BLUE][i/2]=true;
+                }else color[BLACK][i/2]=true;
+            }else if(str[0] == 'g'){
+                color[GREEN][i/2] = true;
+            }else if(str[0] == 'y'){
+                color[YELLOW][i/2] = true;
+            }else if(str[0] == 'r'){
+                color[RED][i/2] = true;
+            }else if(str[0] == 'o'){
+                color[ORANGE][i/2] = true;
             }
-            for(int j=K-1;j>=0;j--){
-                //trace2(memo[j], j)
-                memo[j+1] += (((1LL*f[i]*memo[j])%MOD)*a)%MOD;
-                memo[j+1] = (memo[j+1] > MOD)?memo[j+1]-MOD:memo[j+1];
-                memo[j] = (((1LL*sz*memo[j])%MOD)*a)%MOD;
-                //trace2(j,memo[j])
+        }
+        bool ok = true;
+        forall(i, 0, 6){
+            ok = true;
+            forall(j, 0, 3){
+                if(!color[i][j]){
+                    ok = false;
+                    break;
+                }
             }
-            sz+=f[i];
-            //trace1("pause");
+            if(ok)break;
         }
-        int ans=0;
-        forall(i, 0, K){
-            ans += memo[i];
-            //trace2(memo[i], i)
-            ans = (ans > MOD)?ans-MOD:ans;
-        }
-        printf("%d\n",ans);
+        if(ok)printf("YES\n");
+        else printf("NO\n");
     }
-    return 0;
 }

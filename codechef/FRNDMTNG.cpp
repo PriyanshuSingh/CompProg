@@ -92,54 +92,47 @@ typedef pair<int, bool> pib;
 typedef vector< pii > vpii;
 typedef vector< pib > vpib;
 
-const int MOD = 1e9+7;
-const int MAXN = 210;
-int f[MAXN];
-int K,N;
-int memo[MAXN];
+ll T1,T2,t1,t2;
+
 int main(){
     int T;
     s(T);
     while(T--){
-        s(N);s(K);
-        int temp;
-        fill(f,0);
-        int mx=-1;
-        forall(i, 0, N){
-            s(temp);
-            f[temp]++;
-            mx = maX(mx, temp);
+        sl(T1);sl(T2);sl(t1);sl(t2);
+        if(T1 < T2){
+            swap(T1, T2);
+            swap(t1,t2);
         }
-        fill(memo,0);
-        int sz = f[mx];
-        memo[0]=1;
-        forall(i, 1, f[mx]+1){
-            memo[0] = (1LL*memo[0]*i)%MOD;
+        float a;
+        float ans=0;
+        if(T2 > t1){
+            a = (T2-t1) / (float)T2;
+            a *= (T2-t1) / (float)T1;
+            a /= 2.0;
+            ans += a;
+            //trace1(ans)
         }
-        //trace3(memo[0],mx,f[mx])
-        for(int i = mx-1; i>=0; i--){
-            if(!f[i])continue;
-            int a = 1;
-            forall(j, 1, f[i]){
-                a = (1LL*a*(sz+j))%MOD;
+        if(T1 > T2+t2){
+            a = T2 / (float)T1;
+            a *= (T1 - T2 - t2) / (float)T2;
+            ans += a;
+            a = T2 / (float)T1;
+            a *= T2 / (float)T2;
+            a /= 2.0;
+            ans += a;
+        }else{
+            if(T1 - t2 > 0){
+                a = (T1 - t2) / (float)T1;
+                a *= (T1 - t2) / (float)T2;
+                a /= 2.0;
+                ans += a;
             }
-            for(int j=K-1;j>=0;j--){
-                //trace2(memo[j], j)
-                memo[j+1] += (((1LL*f[i]*memo[j])%MOD)*a)%MOD;
-                memo[j+1] = (memo[j+1] > MOD)?memo[j+1]-MOD:memo[j+1];
-                memo[j] = (((1LL*sz*memo[j])%MOD)*a)%MOD;
-                //trace2(j,memo[j])
-            }
-            sz+=f[i];
-            //trace1("pause");
         }
-        int ans=0;
-        forall(i, 0, K){
-            ans += memo[i];
-            //trace2(memo[i], i)
-            ans = (ans > MOD)?ans-MOD:ans;
-        }
-        printf("%d\n",ans);
+        ans = 1 - ans;
+        //trace1(ans)
+        //trace3(a / 2.0, a,ans);
+        //trace2(ans,T1*T2)
+        printf("%.7f\n",ans);
     }
     return 0;
 }

@@ -92,54 +92,35 @@ typedef pair<int, bool> pib;
 typedef vector< pii > vpii;
 typedef vector< pib > vpib;
 
-const int MOD = 1e9+7;
-const int MAXN = 210;
-int f[MAXN];
-int K,N;
-int memo[MAXN];
+int T;
+double R1,R2,R3,R4;
+ll Nt,Nprev,P,M,B;
+
 int main(){
-    int T;
     s(T);
+    sl(Nprev);sl(P);sl(M);sl(B);
+    slf(R1);slf(R2);slf(R3);slf(R4);
+    double sum=0;
+    double K = 1/R2;
+    K -= 1/R1;
+    K *= 2;
     while(T--){
-        s(N);s(K);
-        int temp;
-        fill(f,0);
-        int mx=-1;
-        forall(i, 0, N){
-            s(temp);
-            f[temp]++;
-            mx = maX(mx, temp);
+        Nt = (Nprev*P)%M + B;
+        if(Nt < 5){
+            if(Nt == 1)sum+=R1;
+            else if(Nt == 2)sum+=R2;
+            else if(Nt == 3)sum+=R3;
+            else if(Nt == 4)sum+=R4;
+            Nprev = Nt;
+            continue;
         }
-        fill(memo,0);
-        int sz = f[mx];
-        memo[0]=1;
-        forall(i, 1, f[mx]+1){
-            memo[0] = (1LL*memo[0]*i)%MOD;
-        }
-        //trace3(memo[0],mx,f[mx])
-        for(int i = mx-1; i>=0; i--){
-            if(!f[i])continue;
-            int a = 1;
-            forall(j, 1, f[i]){
-                a = (1LL*a*(sz+j))%MOD;
-            }
-            for(int j=K-1;j>=0;j--){
-                //trace2(memo[j], j)
-                memo[j+1] += (((1LL*f[i]*memo[j])%MOD)*a)%MOD;
-                memo[j+1] = (memo[j+1] > MOD)?memo[j+1]-MOD:memo[j+1];
-                memo[j] = (((1LL*sz*memo[j])%MOD)*a)%MOD;
-                //trace2(j,memo[j])
-            }
-            sz+=f[i];
-            //trace1("pause");
-        }
-        int ans=0;
-        forall(i, 0, K){
-            ans += memo[i];
-            //trace2(memo[i], i)
-            ans = (ans > MOD)?ans-MOD:ans;
-        }
-        printf("%d\n",ans);
+        double r=0;
+        r += (Nt-3) / R4;
+        r -= (Nt-4) / R3;
+        r += (((Nt-4)*(Nt-3)) / 2) * K;
+        r = 1/r;
+        sum += r;
+        Nprev = Nt;
     }
-    return 0;
+    printf("%.6f",sum);
 }

@@ -91,55 +91,42 @@ typedef vector< piii > vpiii;
 typedef pair<int, bool> pib;
 typedef vector< pii > vpii;
 typedef vector< pib > vpib;
+const int MOD = 1e9;
+const int MAXN = 2015;
+int ncr[2*MAXN][2*MAXN];
+int memo[MAXN][MAXN];
+int N,M;
+inline int modd(int a){
+    return (a >= MOD)?a-MOD:a;
+}
+void pascal_tri(){
+    ncr[0][0] = ncr[1][0] = ncr[1][1] = 1;
+    forall(i, 2, 2*MAXN){
+        ncr[i][0] = ncr[i][i] = 1;
+        forall(j, 1, i){
+            ncr[i][j] = modd(ncr[i-1][j-1]+ncr[i-1][j]);
+        }
+    }
+}
 
-const int MOD = 1e9+7;
-const int MAXN = 210;
-int f[MAXN];
-int K,N;
-int memo[MAXN];
+int DP(int i,int j){
+    if(j < 0)return 0;
+    else if(memo[i][j] != -1)return memo[i][j];
+    else if(i == 1)return memo[i][j] = modd(DP(i,j-1) + ncr[j+M-1][M-1]);
+    else{
+        memo[i][j] = modd(DP(i,j-1) + (1LL*DP(i-1,j)*ncr[j+M-1][M-1])%MOD);
+        return memo[i][j];
+    }
+}
+
 int main(){
     int T;
     s(T);
+    pascal_tri();
+    //forall(i, 0, 100)forall(j, 0, i+1)trace3(ncr[i][j],i,j)
     while(T--){
-        s(N);s(K);
-        int temp;
-        fill(f,0);
-        int mx=-1;
-        forall(i, 0, N){
-            s(temp);
-            f[temp]++;
-            mx = maX(mx, temp);
-        }
-        fill(memo,0);
-        int sz = f[mx];
-        memo[0]=1;
-        forall(i, 1, f[mx]+1){
-            memo[0] = (1LL*memo[0]*i)%MOD;
-        }
-        //trace3(memo[0],mx,f[mx])
-        for(int i = mx-1; i>=0; i--){
-            if(!f[i])continue;
-            int a = 1;
-            forall(j, 1, f[i]){
-                a = (1LL*a*(sz+j))%MOD;
-            }
-            for(int j=K-1;j>=0;j--){
-                //trace2(memo[j], j)
-                memo[j+1] += (((1LL*f[i]*memo[j])%MOD)*a)%MOD;
-                memo[j+1] = (memo[j+1] > MOD)?memo[j+1]-MOD:memo[j+1];
-                memo[j] = (((1LL*sz*memo[j])%MOD)*a)%MOD;
-                //trace2(j,memo[j])
-            }
-            sz+=f[i];
-            //trace1("pause");
-        }
-        int ans=0;
-        forall(i, 0, K){
-            ans += memo[i];
-            //trace2(memo[i], i)
-            ans = (ans > MOD)?ans-MOD:ans;
-        }
-        printf("%d\n",ans);
+        s(N);s(M);
+        fill(memo,-1);
+        printf("%d\n",DP(N,M));
     }
-    return 0;
 }

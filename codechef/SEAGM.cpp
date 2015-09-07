@@ -92,54 +92,74 @@ typedef pair<int, bool> pib;
 typedef vector< pii > vpii;
 typedef vector< pib > vpib;
 
-const int MOD = 1e9+7;
-const int MAXN = 210;
-int f[MAXN];
-int K,N;
-int memo[MAXN];
-int main(){
-    int T;
-    s(T);
-    while(T--){
-        s(N);s(K);
-        int temp;
-        fill(f,0);
-        int mx=-1;
+const int MAXN = 110;
+int memo[MAXN][MAXN];
+float nemo[MAXN][MAXN];
+int total[MAXN];
+int N,T,A[MAXN];
+
+bool opDP(int g,int taken){
+    if(memo[g][taken] == 0 || memo[g][taken] == 1)return memo[g][taken];
+    else if(g==1){
+        return memo[g][taken] = 1;
+    }else if(taken == N){
+        return memo[g][taken] = 0;
+    }else{
+        int ans = 0;
+        if(total[g] > taken){
+            ans = (opDP(g, taken+1) == 0 || ans == 1)?1:0;
+        }
         forall(i, 0, N){
-            s(temp);
-            f[temp]++;
-            mx = maX(mx, temp);
-        }
-        fill(memo,0);
-        int sz = f[mx];
-        memo[0]=1;
-        forall(i, 1, f[mx]+1){
-            memo[0] = (1LL*memo[0]*i)%MOD;
-        }
-        //trace3(memo[0],mx,f[mx])
-        for(int i = mx-1; i>=0; i--){
-            if(!f[i])continue;
-            int a = 1;
-            forall(j, 1, f[i]){
-                a = (1LL*a*(sz+j))%MOD;
+            int f = gcd(g,A[i]);
+            if(f != g){
+                ans = (opDP(f,taken+1) == 0 || ans == 1)?1:0;
             }
-            for(int j=K-1;j>=0;j--){
-                //trace2(memo[j], j)
-                memo[j+1] += (((1LL*f[i]*memo[j])%MOD)*a)%MOD;
-                memo[j+1] = (memo[j+1] > MOD)?memo[j+1]-MOD:memo[j+1];
-                memo[j] = (((1LL*sz*memo[j])%MOD)*a)%MOD;
-                //trace2(j,memo[j])
+        }
+        return memo[g][taken] = ans;
+    }
+}
+
+float raDP(int g, int taken){
+    if(nemo[g][taken] >= 0)return nemo[g][taken];
+    else if(g==1){
+        return nemo[g][taken] = 1.00;
+    }else if(taken == N){
+        return nemo[g][taken] = 0.00;
+    }else{
+        float ans=0.00;
+        if(total[g] > taken){
+            ans += (1 - raDP(g,taken+1)) * (total[g] - taken);
+        }
+        forall(i, 0, N){
+            int f = gcd(g,A[i]);
+            if(f != g){
+                ans += (1 - raDP(f, taken +1));
             }
-            sz+=f[i];
-            //trace1("pause");
         }
-        int ans=0;
-        forall(i, 0, K){
-            ans += memo[i];
-            //trace2(memo[i], i)
-            ans = (ans > MOD)?ans-MOD:ans;
+        ans /= N-taken;
+        return nemo[g][taken] = ans;
+    }
+}
+
+int main(){
+    s(T);
+    while (T--){
+        s(N);
+        fill(total, 0);
+        forall(i, 0, N){
+            s(A[i]);
+            forall(j, 1, MAXN){
+                if(gcd(j,A[i])==j)total[j]++;
+            }
         }
-        printf("%d\n",ans);
+        forall(i, 0, MAXN){
+            forall(j, 0, MAXN){
+                memo[i][j] = -1;
+                nemo[i][j] = -1;
+            }
+        }
+        printf("%d %.4f\n",opDP(0, 0), raDP(0, 0));
+        
     }
     return 0;
 }

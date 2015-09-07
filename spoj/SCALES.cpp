@@ -92,54 +92,29 @@ typedef pair<int, bool> pib;
 typedef vector< pii > vpii;
 typedef vector< pib > vpib;
 
-const int MOD = 1e9+7;
-const int MAXN = 210;
-int f[MAXN];
-int K,N;
-int memo[MAXN];
+const int MAXN = 1e6+10;
+int memo[MAXN][2];
+char str[MAXN];
+int N,L,D,T;
+inline int modd(int a){
+    return (a >= D)?a-D:a;
+}
 int main(){
-    int T;
     s(T);
     while(T--){
-        s(N);s(K);
-        int temp;
-        fill(f,0);
-        int mx=-1;
+        s(N);s(L);s(D);
+        ss(str);
+        memo[0][0] = 1;
+        memo[0][1] = 0;
         forall(i, 0, N){
-            s(temp);
-            f[temp]++;
-            mx = maX(mx, temp);
-        }
-        fill(memo,0);
-        int sz = f[mx];
-        memo[0]=1;
-        forall(i, 1, f[mx]+1){
-            memo[0] = (1LL*memo[0]*i)%MOD;
-        }
-        //trace3(memo[0],mx,f[mx])
-        for(int i = mx-1; i>=0; i--){
-            if(!f[i])continue;
-            int a = 1;
-            forall(j, 1, f[i]){
-                a = (1LL*a*(sz+j))%MOD;
+            if(i < L && str[L-1-i] == '1'){
+                memo[i+1][0] = memo[i][0];
+                memo[i+1][1] = modd(memo[i][0] + memo[i][1]);
+            }else{
+                memo[i+1][0] = modd(memo[i][0] + memo[i][1]);
+                memo[i+1][1] = memo[i][1];
             }
-            for(int j=K-1;j>=0;j--){
-                //trace2(memo[j], j)
-                memo[j+1] += (((1LL*f[i]*memo[j])%MOD)*a)%MOD;
-                memo[j+1] = (memo[j+1] > MOD)?memo[j+1]-MOD:memo[j+1];
-                memo[j] = (((1LL*sz*memo[j])%MOD)*a)%MOD;
-                //trace2(j,memo[j])
-            }
-            sz+=f[i];
-            //trace1("pause");
         }
-        int ans=0;
-        forall(i, 0, K){
-            ans += memo[i];
-            //trace2(memo[i], i)
-            ans = (ans > MOD)?ans-MOD:ans;
-        }
-        printf("%d\n",ans);
+        printf("%d\n",memo[N][0]);
     }
-    return 0;
 }

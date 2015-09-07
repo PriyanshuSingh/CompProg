@@ -84,6 +84,8 @@ const int fxx[8][2] = {{0,1}, {0,-1}, {1,0}, {-1,0}, {1,1}, {1,-1}, {-1,1}, {-1,
 #define ui unsigned int
 #define us unsigned short
 
+#define gc getchar_unlocked
+
 typedef vector<int> vi;
 typedef pair<int, int> pii;
 typedef pair< pii, int> piii;
@@ -92,54 +94,50 @@ typedef pair<int, bool> pib;
 typedef vector< pii > vpii;
 typedef vector< pib > vpib;
 
-const int MOD = 1e9+7;
-const int MAXN = 210;
-int f[MAXN];
-int K,N;
-int memo[MAXN];
-int main(){
-    int T;
-    s(T);
-    while(T--){
-        s(N);s(K);
-        int temp;
-        fill(f,0);
-        int mx=-1;
-        forall(i, 0, N){
-            s(temp);
-            f[temp]++;
-            mx = maX(mx, temp);
-        }
-        fill(memo,0);
-        int sz = f[mx];
-        memo[0]=1;
-        forall(i, 1, f[mx]+1){
-            memo[0] = (1LL*memo[0]*i)%MOD;
-        }
-        //trace3(memo[0],mx,f[mx])
-        for(int i = mx-1; i>=0; i--){
-            if(!f[i])continue;
-            int a = 1;
-            forall(j, 1, f[i]){
-                a = (1LL*a*(sz+j))%MOD;
-            }
-            for(int j=K-1;j>=0;j--){
-                //trace2(memo[j], j)
-                memo[j+1] += (((1LL*f[i]*memo[j])%MOD)*a)%MOD;
-                memo[j+1] = (memo[j+1] > MOD)?memo[j+1]-MOD:memo[j+1];
-                memo[j] = (((1LL*sz*memo[j])%MOD)*a)%MOD;
-                //trace2(j,memo[j])
-            }
-            sz+=f[i];
-            //trace1("pause");
-        }
-        int ans=0;
-        forall(i, 0, K){
-            ans += memo[i];
-            //trace2(memo[i], i)
-            ans = (ans > MOD)?ans-MOD:ans;
-        }
-        printf("%d\n",ans);
-    }
-    return 0;
+
+inline void fs(int &x)
+{
+    register int c = gc();
+    x = 0;
+    int neg = 0;
+    for(;((c<48 || c>57) && c != '-');c = gc());
+    if(c=='-') {neg=1;c=gc();}
+    for(;c>47 && c<58;c = gc()) {x = (x<<1) + (x<<3) + c - 48;}
+    if(neg) x=-x;
 }
+
+
+const int MAXN = 1e5+10;
+int A[MAXN];
+int N,T;
+ll K;
+int main(){
+    fs(T);
+    while(T--){
+        fs(N);sl(K);
+        forall(i, 0, N)fs(A[i]);
+        ll count = 1;
+        ll reFill = K;
+        forall(i, 0, N){
+            if(K >= A[i]){
+                K -= A[i];
+                if(K != 0)K--;
+            }else if(reFill >= A[i]){
+                K = reFill - A[i] + K;
+                if(K != 0)K--;
+                count++;
+            }else{
+                if((A[i]-K)%reFill ==0){
+                    count += (A[i]-K) / reFill;
+                    K = 0;
+                }else{
+                    count += (A[i]-K) / reFill + 1;
+                    K = reFill - (A[i]-K)%reFill;
+                    K--; 
+                }
+            }
+        }
+        printf("%lld\n",count);
+    }
+}
+

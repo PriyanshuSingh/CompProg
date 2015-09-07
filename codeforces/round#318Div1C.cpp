@@ -92,54 +92,56 @@ typedef pair<int, bool> pib;
 typedef vector< pii > vpii;
 typedef vector< pib > vpib;
 
-const int MOD = 1e9+7;
-const int MAXN = 210;
-int f[MAXN];
-int K,N;
-int memo[MAXN];
-int main(){
-    int T;
-    s(T);
-    while(T--){
-        s(N);s(K);
-        int temp;
-        fill(f,0);
-        int mx=-1;
-        forall(i, 0, N){
-            s(temp);
-            f[temp]++;
-            mx = maX(mx, temp);
-        }
-        fill(memo,0);
-        int sz = f[mx];
-        memo[0]=1;
-        forall(i, 1, f[mx]+1){
-            memo[0] = (1LL*memo[0]*i)%MOD;
-        }
-        //trace3(memo[0],mx,f[mx])
-        for(int i = mx-1; i>=0; i--){
-            if(!f[i])continue;
-            int a = 1;
-            forall(j, 1, f[i]){
-                a = (1LL*a*(sz+j))%MOD;
-            }
-            for(int j=K-1;j>=0;j--){
-                //trace2(memo[j], j)
-                memo[j+1] += (((1LL*f[i]*memo[j])%MOD)*a)%MOD;
-                memo[j+1] = (memo[j+1] > MOD)?memo[j+1]-MOD:memo[j+1];
-                memo[j] = (((1LL*sz*memo[j])%MOD)*a)%MOD;
-                //trace2(j,memo[j])
-            }
-            sz+=f[i];
-            //trace1("pause");
-        }
-        int ans=0;
-        forall(i, 0, K){
-            ans += memo[i];
-            //trace2(memo[i], i)
-            ans = (ans > MOD)?ans-MOD:ans;
-        }
-        printf("%d\n",ans);
+template<typename T> 
+inline T gcD(T a,T b){
+    if(a < b)swap(a,b);
+    while(b){  a = a % b;b ^= a;a ^= b;b ^= a; };
+    return a;
+}
+
+const int MAXN = 1e5 + 10;
+vi g[MAXN];
+
+bool del[MAXN];
+int legs[MAXN];
+int N;
+
+void dfs(int i, int par=0){
+    if(sz(g[i]) <= 2){
+        del[i] = true;
+        foreach(v, g[i])if(*v != par)dfs(*v,i);
     }
+}
+
+
+int main(){
+    s(N);
+    forall(i, 0, N-1){
+        int a,b;
+        s(a);s(b);
+        g[a].pb(b);
+        g[b].pb(a);
+    }
+    forall(i, 1, N+1){
+        if(sz(g[i]) == 1)dfs(i);
+    }
+    forall(i, 1, N+1){
+        if(!del[i]){
+            foreach(v, g[i])if(del[*v])legs[i] = miN(legs[i]+1, 2);
+        }
+    }
+    forall(i, 1, N+1){
+        if(!del[i]){
+            int cnt=0;
+            foreach(v, g[i]){
+                if(!del[*v] && sz(g[*v]) - legs[*v] > 1)cnt++;
+            }
+            if(cnt>2){
+                printf("No\n");
+                return 0;
+            }
+        }
+    }
+    printf("Yes\n");
     return 0;
 }

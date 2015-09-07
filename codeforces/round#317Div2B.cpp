@@ -92,54 +92,45 @@ typedef pair<int, bool> pib;
 typedef vector< pii > vpii;
 typedef vector< pib > vpib;
 
-const int MOD = 1e9+7;
-const int MAXN = 210;
-int f[MAXN];
-int K,N;
-int memo[MAXN];
+template<typename T> 
+inline T gcD(T a,T b){
+    if(a < b)swap(a,b);
+    while(b){  a = a % b;b ^= a;a ^= b;b ^= a; };
+    return a;
+}
+
+const int MAXN = 1e5 + 10;
+int buy[MAXN],sell[MAXN];
+vpii s;
+int N,d;
+
 int main(){
-    int T;
-    s(T);
-    while(T--){
-        s(N);s(K);
-        int temp;
-        fill(f,0);
-        int mx=-1;
-        forall(i, 0, N){
-            s(temp);
-            f[temp]++;
-            mx = maX(mx, temp);
+    fill(buy, 0);fill(sell, 0);
+    s(N);s(d);
+    forall(i, 0, N){
+        char c = getchar();
+        int p,q;
+        while(c != 'B' && c != 'S')c = getchar();
+        s(p);s(q);
+        if(c=='B')buy[p] += q;
+        else sell[p] += q;
+    }
+    int cnt = d;
+    s.clear();
+    for(int i = 0; i < MAXN; ++i){
+        if(sell[i] && cnt){
+            //printf("S %d %d\n",i,sell[i]);
+            s.pb(mp(i,sell[i]));
+            cnt--;
         }
-        fill(memo,0);
-        int sz = f[mx];
-        memo[0]=1;
-        forall(i, 1, f[mx]+1){
-            memo[0] = (1LL*memo[0]*i)%MOD;
+    }
+    for(int i = sz(s) - 1; i >= 0; --i)printf("S %d %d\n",s[i].F,s[i].S);
+    cnt = d;
+    for(int i=MAXN-1; i >= 0; --i){
+        if(buy[i] && cnt){
+            printf("B %d %d\n",i,buy[i]);
+            cnt--;
         }
-        //trace3(memo[0],mx,f[mx])
-        for(int i = mx-1; i>=0; i--){
-            if(!f[i])continue;
-            int a = 1;
-            forall(j, 1, f[i]){
-                a = (1LL*a*(sz+j))%MOD;
-            }
-            for(int j=K-1;j>=0;j--){
-                //trace2(memo[j], j)
-                memo[j+1] += (((1LL*f[i]*memo[j])%MOD)*a)%MOD;
-                memo[j+1] = (memo[j+1] > MOD)?memo[j+1]-MOD:memo[j+1];
-                memo[j] = (((1LL*sz*memo[j])%MOD)*a)%MOD;
-                //trace2(j,memo[j])
-            }
-            sz+=f[i];
-            //trace1("pause");
-        }
-        int ans=0;
-        forall(i, 0, K){
-            ans += memo[i];
-            //trace2(memo[i], i)
-            ans = (ans > MOD)?ans-MOD:ans;
-        }
-        printf("%d\n",ans);
     }
     return 0;
 }

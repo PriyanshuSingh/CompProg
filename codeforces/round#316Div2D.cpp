@@ -92,54 +92,92 @@ typedef pair<int, bool> pib;
 typedef vector< pii > vpii;
 typedef vector< pib > vpib;
 
-const int MOD = 1e9+7;
-const int MAXN = 210;
-int f[MAXN];
-int K,N;
-int memo[MAXN];
-int main(){
-    int T;
-    s(T);
-    while(T--){
-        s(N);s(K);
-        int temp;
-        fill(f,0);
-        int mx=-1;
-        forall(i, 0, N){
-            s(temp);
-            f[temp]++;
-            mx = maX(mx, temp);
-        }
-        fill(memo,0);
-        int sz = f[mx];
-        memo[0]=1;
-        forall(i, 1, f[mx]+1){
-            memo[0] = (1LL*memo[0]*i)%MOD;
-        }
-        //trace3(memo[0],mx,f[mx])
-        for(int i = mx-1; i>=0; i--){
-            if(!f[i])continue;
-            int a = 1;
-            forall(j, 1, f[i]){
-                a = (1LL*a*(sz+j))%MOD;
-            }
-            for(int j=K-1;j>=0;j--){
-                //trace2(memo[j], j)
-                memo[j+1] += (((1LL*f[i]*memo[j])%MOD)*a)%MOD;
-                memo[j+1] = (memo[j+1] > MOD)?memo[j+1]-MOD:memo[j+1];
-                memo[j] = (((1LL*sz*memo[j])%MOD)*a)%MOD;
-                //trace2(j,memo[j])
-            }
-            sz+=f[i];
-            //trace1("pause");
-        }
-        int ans=0;
-        forall(i, 0, K){
-            ans += memo[i];
-            //trace2(memo[i], i)
-            ans = (ans > MOD)?ans-MOD:ans;
-        }
-        printf("%d\n",ans);
-    }
-    return 0;
+template<typename T> 
+inline T gcD(T a,T b){
+    if(a < b)swap(a,b);
+    while(b){  a = a % b;b ^= a;a ^= b;b ^= a; };
+    return a;
 }
+
+const int MAXN = 5e5 + 10;
+int start[MAXN];
+int stop[MAXN];
+char verw[MAXN];
+typedef struct __VERTEX__{
+    int index;
+    bool z[26];
+} ver;
+
+struct cmp{
+    bool operator()(const ver a, const int b){
+        return start[a.index] < b;
+    }
+    
+    bool operator()(const int a, const ver b){
+        return a < start[b.index];
+    }
+};
+
+vector< ver > depth[MAXN];
+vi g[MAXN];
+int N,M;
+void dfs(int cur, int par=0, int _depth=1){
+    static int t = 0;
+    ver c;
+    c.index = cur;
+    depth[_depth].pb(c);
+    start[cur] = ++t;
+    foreach(v, g[cur])if(*v != par)dfs(*v,cur,_depth+1);
+    stop[cur] = ++t;
+}
+
+int main(){
+    s(N);s(M);
+    forall(i, 2, N+1){
+        int temp;s(temp);
+        g[i].pb(temp);
+        g[temp].pb(i);
+    }
+    ss(verw+1);
+    dfs(1);
+    forall(i, 1, N+1){
+        if(!depth[i].empty()){
+            forall(k, 0, 'z'-'a'+1)depth[i][0].z[k] = false;
+            depth[i][0].z[verw[depth[i][0].index]-'a'] = true;
+            forall(j, 1, sz(depth[i])){
+                forall(k, 0, 'z'-'a'+1)depth[i][j].z[k] = false;
+                depth[i][j].z[verw[depth[i][j].index]-'a'] = true;
+                forall(k, 0, 'z'-'a'+1){
+                    depth[i][j].z[k] ^= depth[i][j-1].z[k];
+                }
+            }            
+        }
+    }
+    
+    while(M--){
+        int v,h;
+        s(v);s(h);
+        int st = (lower_bound(all(depth[h]),start[v], cmp()) - depth[h].begin());
+        int en = (lower_bound(all(depth[h]),stop[v], cmp()) - depth[h].begin());
+        if(st < en){
+            int c=0;
+            if(st != 0){
+                forall(k, 0, 'z'-'a'+1){
+                    if(depth[h][st-1].z[k] ^ depth[h][en-1].z[k])c++;
+                }
+            }else{
+                forall(k, 0, 'z'-'a'+1){
+                    if(depth[h][en-1].z[k])c++;
+                }
+            }
+            if((en - st)%2 == 0){
+                if(c>0)printf("No\n");
+                else printf("Yes\n");
+            }else{
+                if(c>1)printf("No\n");
+                else printf("Yes\n");
+            }
+        }else printf("Yes\n");
+    }
+}
+
