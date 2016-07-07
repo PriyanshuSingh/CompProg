@@ -102,13 +102,16 @@ inline void fs(int &x)
     if(neg) x=-x;
 }
 
-vi graph[1000];
+const int MAXN = 1010;
+
+
+vi graph[MAXN];
 stack< pii > stk;
-int low[1000]; // lowpoint (node with min discover time that can be reached)
-int dis[1000]; // discover time
-int p[1000]; // parent
-bool vis[1000];
-vpii bcc[1000]; // max biconnected component can be |V|
+int low[MAXN]; // lowpoint (node with min discover time that can be reached)
+int dis[MAXN]; // discover time
+int p[MAXN]; // parent
+bool vis[MAXN];
+vpii bcc[MAXN]; // max biconnected component can be |V|
 vi sep_vertex;
 
 void make_bcc(pii a, vpii &b){
